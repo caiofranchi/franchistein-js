@@ -6,14 +6,12 @@ MainLoader.load("//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js",{id
 function onStartManolo(){
     console.log("start");
     console.log(this);
-    console.log(arguments[0]);
-    console.log(arguments[1]);
 }
 
 function onCompleteManolo (){
-   console.log("COMPLETE"+this);
+   //console.log("COMPLETE"+this);
 }
 
 function onErrorManolo (){
-   console.log("ERRO"+this);
+   //console.log("ERRO"+this);
 }

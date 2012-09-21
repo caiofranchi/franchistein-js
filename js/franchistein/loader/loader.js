@@ -63,13 +63,13 @@ FSLoader.prototype = {
 
         var onStartCallback = pObjOptions["onstart"];
 
-        if(onStartCallback) onStartCallback.apply(this||window,pObjOptions["onstartparams"]);
+        if(onStartCallback) onStartCallback.apply(this || window, pObjOptions["onstartparams"]);
 
         if (elScript.readyState){  //IE7+
             elScript.onreadystatechange = function () {
                 if (elScript.readyState == "loaded" || elScript.readyState == "complete") {
                     elScript.onreadystatechange = null;
-                    if(onCompleteCallback) onCompleteCallback();
+                    //if(onCompleteCallback) onCompleteCallback();
                 }
             };
         } else {
