@@ -3,8 +3,9 @@
  * Author: caio.franchi
  * Date: 20/09/12
  * Time: 12:45
+ * Dependencies: utils/StringUtils, polyfills/function.js
  */
-window.FSLoader = function(pObj){
+window.FSLoader = function (pObj) {
     // VARS
     this.currentLoading = false;
     this.items = [ ];
@@ -14,19 +15,22 @@ window.FSLoader = function(pObj){
     this.containerElement = document.createElement("div");
     this.containerElement.id = "divContainerFSLoader";
     this.containerElement.style.display = "none";
-    document.getElementsByTagName("body")[0].appendChild(this.containerElement);
+    document.body.appendChild(this.containerElement);
+
+    //Registered internal modules
+    this.MODULE_STRINGUTILS = "js/franchistein/utils/StringUtils.js";
 
     //LOADER TYPES
-    this.SCRIPT = "script";
-    this.CSS = "css";
-    this.IMAGE = "image";
-    this.SWF = "flash";
-    this.AJAX = "ajax";
+    this.TYPE_SCRIPT = "script";
+    this.TYPE_CSS = "css";
+    this.TYPE_IMAGE = "image";
+    this.TYPE_SWF = "flash";
+    this.TYPE_AJAX = "ajax";
 };
 
 FSLoader.prototype = {
 
-    loadFSModule: function () {
+    loadFSModule: function (pStrID) {
 
     },
 
@@ -34,32 +38,32 @@ FSLoader.prototype = {
 
     },
 
-    load: function (pStrPath, pObjOptions) {
+    load: function (pStrPath, pObjOptions) { //pObjOptions = {container,onstart,onerror,oncomplete,type:swf|img|js|css,preventCache:true|false,onstartparams}
         var strType = pObjOptions["type"] ? pObjOptions["type"] : this.getFileTypeForLoading(pStrPath);
 
         //identify type of the file for loading
         switch (strType) {
-            case this.SCRIPT:
+            case this.TYPE_SCRIPT:
                 this.loadJavascript(pStrPath,pObjOptions);
             break;
-            case this.CSS:
+            case this.TYPE_CSS:
 
             break;
-            case this.IMAGE:
+            case this.TYPE_IMAGE:
 
             break;
         }
 
     },
 
-    loadJavascript: function (pStrPath, pObjOptions) { //pObjOptions = {container,onstart,onerror,oncomplete,type:swf|img|js|css,preventCache:true|false}
+    loadJavascript: function (pStrPath, pObjOptions) {
         var elScript = document.createElement("script");
         elScript.type = "text/javascript";
         elScript.src = pStrPath;
 
         var onStartCallback = pObjOptions["onstart"];
 
-        if(onStartCallback) onStartCallback();
+        if(onStartCallback) onStartCallback.apply(this||window,pObjOptions["onstartparams"]);
 
         if (elScript.readyState){  //IE7+
             elScript.onreadystatechange = function () {
@@ -70,11 +74,12 @@ FSLoader.prototype = {
             };
         } else {
             //Others
-            elScript.addEventListener("load",this.onLoadComplete.bind(this,elScript,pStrPath,pObjOptions),false);
-            elScript.addEventListener("error",this.onLoadError.bind(this,elScript,pStrPath,pObjOptions),false);
+            elScript.addEventListener("load", this.onLoadComplete.bind(this, elScript, pStrPath, pObjOptions), false);
+            elScript.addEventListener("error", this.onLoadError.bind(this, elScript, pStrPath, pObjOptions), false);
 
-            /* elScript.onload = function () {
-                onCompleteCallback();
+            /*
+             elScript.onload = function () {
+                 console.log(this);
             };
              elScript.onerror = function () {
              onErrorCallback();
@@ -119,11 +124,14 @@ FSLoader.prototype = {
         }
     },
 
+    generateObjectResponse: function (){
+        return {};
+    },
+
     onLoadComplete: function (pEl,pStrPath, pObjOptions){
-        //console.log(pEl);
+        console.log(this);
 
         if(pObjOptions["container"]) {
-            console.log(pEl);
             pObjOptions["container"].appendChild(pEl);
         }
     },
