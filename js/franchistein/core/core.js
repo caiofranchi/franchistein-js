@@ -5,7 +5,7 @@
  * Time: 15:50
  */
 
-(function(global) {
+(function (global) {
 
     // Setup the interface
     var FS = {
@@ -17,13 +17,13 @@
     };
 
     if (global.FS) {
-        throw new Error('Already defined');
+        throw new Error('FS is already defined');
     } else {
         global.FS = FS;
     }
 
     //CORE METHODS
-    function teste(pOrigin){
+    function teste(pOrigin) {
         console.log(this);
     }
 
