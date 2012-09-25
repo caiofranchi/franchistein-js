@@ -6,12 +6,12 @@ MainLoader.load("http://caiofranchi.com.br/clientes/silika/pernambucanas/img/log
 
 function onCompleteManolo () {
     console.log("COMPLETE");
-    //console.log(this.data);
+    console.log(this);
     document.getElementById("main-content").appendChild(this.element);
 }
 
 function onStartManolo() {
-    console.log("START");
+    //console.log("START");
     //console.log(this);
 }
 
