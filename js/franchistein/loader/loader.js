@@ -21,7 +21,7 @@
 
 
 //TODO: Transform class into MODULE pattern
-window.FSLoader = function (pObjDefaultOptions) {
+window.FSLoader = function (pLoadingType, pObjDefaultOptions) {
     "use strict";
     // VARS
     this.lastItem = undefined;
@@ -32,13 +32,15 @@ window.FSLoader = function (pObjDefaultOptions) {
 
     //SET DEFAULTS
 
-    //set loading method
-    if (window.XMLHttpRequest !== null) {
-        //if xhr is available
-        this.loading_type = FSLoaderHelpers.LOAD_AS_XHR;
-    } else {
-        this.loading_type = FSLoaderHelpers.LOAD_AS_TAGS;
+    //set loading type
+    this.loading_type = pLoadingType;    if (this.loading_type === FSLoaderHelpers.LOAD_AS_XHR) {
+        //verify if the browser has capabilities
+        if (window.XMLHttpRequest === null) {
+            //if xhr is available
+            this.loading_type = FSLoaderHelpers.LOAD_AS_TAGS;
+        }
     }
+
 
     // set the default container
     if (this.default_options !== undefined && this.default_options["container"] !== undefined) {
@@ -130,7 +132,7 @@ window.FSLoaderItem = function (pRef, pStrPath, pObjOptions) {
 
     this.path = pStrPath;
     this.options = pObjOptions;
-    this.source = pRef;
+    this.reference = pRef;
     this.data = undefined;
     this.bytesTotal = 0;
     this.bytesLoaded = 0;
@@ -401,8 +403,16 @@ FSLoader.prototype = {
     //internal event on complete
     onItemLoadComplete: function (event) {
         "use strict";
-        console.log("uhu");
         this.state = FSLoaderHelpers.STATE_FINISHED;
+
+        if (this.reference.loading_type === FSLoaderHelpers.LOAD_AS_TAGS) {
+            this.data = this.element;
+        }else if (this.reference.loading_type === FSLoaderHelpers.LOAD_AS_XHR) {
+            //this.data =
+            this.element = event.currentTarget;
+            console.log(event);
+        }
+
         //this.data = this.element.nodeValue;
         if (this.options.oncomplete !== undefined) {
             if (this.options.oncompleteparams !== undefined) {
@@ -412,15 +422,21 @@ FSLoader.prototype = {
             }
         }
         //removing events from the element
-        this.source.removeEventsFromElement(this.element);
+        this.reference.removeEventsFromElement(this.element);
     },
 
     //internal event on error
     onItemLoadProgress: function (event) {
         "use strict";
-
+        //prevent blank
+        if(event.loaded > 0 && event.total == 0) {
+            return;
+        }
         //assign
         this.state = FSLoaderHelpers.STATE_LOADING;
+        this.bytesLoaded = event.loaded;
+        this.bytesTotal =  event.total;
+        this.progress = Math.ceil((100 * this.bytesLoaded)/this.bytesTotal);
 
         if (this.options.onprogress !== undefined) {
             if (this.options.onprogressparams !== undefined) {
@@ -446,6 +462,6 @@ FSLoader.prototype = {
             }
         }
         //removing events from the element
-        this.source.removeEventsFromElement(this.element);
+        this.reference.removeEventsFromElement(this.element);
     }
 };

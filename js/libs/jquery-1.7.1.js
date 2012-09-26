@@ -4754,8 +4754,8 @@ var origPOS = Expr.match.POS,
 	};
 
 for ( var type in Expr.match ) {
-	Expr.match[ type ] = new RegExp( Expr.match[ type ].source + (/(?![^\[]*\])(?![^\(]*\))/.source) );
-	Expr.leftMatch[ type ] = new RegExp( /(^(?:.|\r|\n)*?)/.source + Expr.match[ type ].source.replace(/\\(\d+)/g, fescape) );
+	Expr.match[ type ] = new RegExp( Expr.match[ type ].reference + (/(?![^\[]*\])(?![^\(]*\))/.reference) );
+	Expr.leftMatch[ type ] = new RegExp( /(^(?:.|\r|\n)*?)/.reference + Expr.match[ type ].reference.replace(/\\(\d+)/g, fescape) );
 }
 
 var makeArray = function( array, results ) {
