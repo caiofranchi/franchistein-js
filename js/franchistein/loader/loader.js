@@ -19,6 +19,101 @@
 /*jslint browser: true*/
 /*global document,console,StringUtils*/
 
+window.FSLoaderHelpers = {
+
+    //LOADING TYPES
+    LOAD_AS_TAGS : "tag",
+    LOAD_AS_XHR : "xhr",
+
+    //LOADER TYPES (read-only)
+    TYPE_SCRIPT : "script",
+    TYPE_CSS : "css",
+    TYPE_IMAGE : "image",
+    TYPE_SWF : "flash",
+    TYPE_SOUND : "sound",
+    TYPE_JSON : "json",
+    TYPE_XML : "xml",
+    TYPE_SVG : "svg",
+    TYPE_TEXT : "text",
+
+    //LOADING STATES (read-only)
+    STATE_UNLOADED : "unloaded",
+    STATE_STARTED : "started",
+    STATE_LOADING : "loading",
+    STATE_FINISHED : "complete",
+    STATE_ERROR : "error",
+
+    //Registered internal modules
+    MODULE_BASE : "js/franchistein/",
+
+    parseContent : function () {
+        "use strict";
+        var identifiedQueue = new FSLoaderQueue();
+        return identifiedQueue;
+    }
+};
+/*
+window.FSLoaderQueue = function (pID, pObjDefaultOptions) {  //disposeAfterLoading, preventCache, onQueueLoadStart, onQueueLoadComplete, onQueuelLoadProgress
+    "use strict";
+    this.items = [ ];
+    this.currentIndex = [ ];
+    this.currentItem = undefined;
+    this.ignoreErrors = true;
+};
+*/
+
+window.FSLoaderItem = function (pRef, pStrPath, pObjOptions) {
+    "use strict";
+    //setup
+    this.id = "loader-item-" + pRef.items.length; //it the id was not set, generate automatically
+    this.path = pStrPath;
+    this.options = pObjOptions;
+    this.reference = pRef;
+    this.data = undefined;
+    this.bytesTotal = 0;
+    this.bytesLoaded = 0;
+    this.progress = 0;
+    this.type = undefined;
+
+    //preventCache?
+    this.preventCache = false;
+
+    //defined by system
+    this.element = undefined;
+    this.state = FSLoaderHelpers.STATE_UNLOADED;
+    this.queue = undefined;
+    this.data = undefined;
+    this.bytesTotal = 0;
+    this.bytesLoaded = 0;
+    this.progress = 0;
+
+    if (pObjOptions) {
+        //id
+        if (pObjOptions.id !== undefined) {
+            this.id = pObjOptions.id;
+        }
+        //type of file
+        if (pObjOptions.type === undefined) {
+            this.type = pRef.getFileType(pStrPath);
+        } else {
+            this.type = pObjOptions.type;
+        }
+
+        //prevent cache
+        if (pObjOptions.preventCache !== undefined) {
+            this.preventCache = pObjOptions.preventCache;
+        }
+
+        //retries?
+        this.retries = 0;
+        if (pObjOptions.retries !== undefined) {
+            this.retries = pObjOptions.retries;
+        }
+    } else {
+        //type of file
+        this.type = pRef.getFileType(pStrPath);
+    }
+};
 
 //TODO: Transform class into MODULE pattern
 window.FSLoader = function (pLoadingType, pObjDefaultOptions) {
@@ -53,120 +148,6 @@ window.FSLoader = function (pLoadingType, pObjDefaultOptions) {
     };
 };
 
-window.FSLoaderHelpers = {
-
-    //LOADING TYPES
-    LOAD_AS_TAGS : "tag",
-    LOAD_AS_XHR : "xhr",
-
-    //LOADER TYPES (read-only)
-    TYPE_SCRIPT : "script",
-    TYPE_CSS : "css",
-    TYPE_IMAGE : "image",
-    TYPE_SWF : "flash",
-    TYPE_SOUND : "sound",
-    TYPE_JSON : "json",
-    TYPE_XML : "xml",
-    TYPE_SVG : "svg",
-    TYPE_TEXT : "text",
-
-    //LOADING STATES (read-only)
-    STATE_UNLOADED : "unloaded",
-    STATE_STARTED : "started",
-    STATE_LOADING : "loading",
-    STATE_FINISHED : "complete",
-    STATE_ERROR : "error",
-
-    //Registered internal modules
-    MODULE_BASE : "js/franchistein/",
-
-    parseContent : function () {
-        "use strict";
-        var identifiedQueue = new FSLoaderQueue();
-        return identifiedQueue;
-    }
-};
-
-window.FSLoaderQueue = function (pID, pObjDefaultOptions) {  //disposeAfterLoading, preventCache, onQueueLoadStart, onQueueLoadComplete, onQueuelLoadProgress
-    "use strict";
-    this.items = [ ];
-    this.currentIndex = [ ];
-    this.ignoreErrors = true;
-};
-
-//TODO: Develop the queue controller
-FSLoaderQueue.prototype = {
-    add: function (pStrPath, pObjOptions) {
-        "use strict";
-
-    },
-
-    start: function () {
-
-    },
-
-    pause: function () {
-
-    },
-
-    stop: function () {
-
-    },
-
-    get: function () {
-
-    },
-
-    dispose: function() {
-
-    }
-}
-
-window.FSLoaderItem = function (pRef, pStrPath, pObjOptions) {
-    "use strict";
-    //setup
-    this.id = "loader-item-" + pRef.items.length; //it the id was not set, generate automatically
-    if (pObjOptions.id !== undefined) {
-        this.id = pObjOptions.id;
-    }
-
-    this.path = pStrPath;
-    this.options = pObjOptions;
-    this.reference = pRef;
-    this.data = undefined;
-    this.bytesTotal = 0;
-    this.bytesLoaded = 0;
-    this.progress = 0;
-
-    //type of file
-    if (pObjOptions.type === undefined) {
-        this.type = pRef.getFileType(pStrPath);
-    } else {
-        this.type = pObjOptions.type;
-    }
-
-    //preventCache?
-    this.preventCache = false;
-    if (pObjOptions.preventCache !== undefined) {
-        this.preventCache = pObjOptions.preventCache;
-    }
-
-    //retries?
-    this.retries = 0;
-    if (pObjOptions.retries !== undefined) {
-        this.retries = pObjOptions.retries;
-    }
-
-    //defined by system
-    this.element = undefined;
-    this.state = FSLoaderHelpers.STATE_UNLOADED;
-    this.queue = undefined;
-    this.data = undefined;
-    this.bytesTotal = 0;
-    this.bytesLoaded = 0;
-    this.progress = 0;
-};
-
 FSLoader.prototype = {
 
     //PUBLIC METHODS
@@ -177,7 +158,7 @@ FSLoader.prototype = {
 
     load: function (pStrPath, pObjOptions, pAutoLoad) { //pObjOptions = {container,onstart,onerror,oncomplete,type:swf|img|js|css,preventCache:true|false,onstartparams}
         "use strict";
-        var strType = (pObjOptions.type !== undefined) ? pObjOptions.type : this.getFileType(pStrPath);
+        var strType;
 
         //create a FS Loader for the request
         var currentItem = this.generateLoaderItem(pStrPath, pObjOptions);
@@ -195,6 +176,28 @@ FSLoader.prototype = {
 
         //setup element
         elScript.setAttribute("type", "text/javascript");
+        elScript.setAttribute("src", pStrPath);
+
+        return elScript;
+    },
+
+    getSVGTag: function (pStrPath) {
+        "use strict";
+        var elScript = document.createElement("object");
+
+        //setup element
+        elScript.setAttribute("type", "image/svg+xml");
+        elScript.setAttribute("src", pStrPath);
+
+        return elScript;
+    },
+
+    getSoundTag: function (pStrPath) {
+        "use strict";
+        var elScript = document.createElement("audio");
+
+        //setup element
+        elScript.setAttribute("type", "audio/ogg");
         elScript.setAttribute("src", pStrPath);
 
         return elScript;
@@ -222,16 +225,18 @@ FSLoader.prototype = {
     },
 
     generateTagByType: function (pStrType, pStrPath) {
+        "use strict";
         switch (pStrType) {
-            case FSLoaderHelpers.TYPE_CSS:
-                return this.getCssTag(pStrPath);
-                break;
-            case FSLoaderHelpers.TYPE_SCRIPT:
-                return this.getJavascriptTag(pStrPath);
-                break;
-            case FSLoaderHelpers.TYPE_IMAGE:
-                return this.getImageTag(pStrPath);
-                break;
+        case FSLoaderHelpers.TYPE_CSS:
+            return this.getCssTag(pStrPath);
+        case FSLoaderHelpers.TYPE_SCRIPT:
+            return this.getJavascriptTag(pStrPath);
+        case FSLoaderHelpers.TYPE_IMAGE:
+            return this.getImageTag(pStrPath);
+        case FSLoaderHelpers.TYPE_SVG:
+            return this.getSVGTag(pStrPath);
+        case FSLoaderHelpers.TYPE_SOUND:
+            return this.getSoundTag(pStrPath);
         };
     },
 
@@ -252,34 +257,53 @@ FSLoader.prototype = {
         }
     },
 
-    //returns the file type for loading, based on file extension
+    //returns the file type for loading, based on file extension and recognized file types for loading
     getFileType: function (pStrPath) {
         "use strict";
         var strExtension = StringUtils.getFileExtension(pStrPath);
 
-        if (strExtension === "js") {
-            return FSLoaderHelpers.TYPE_SCRIPT;
-        } else if (strExtension === "jpg" || strExtension === "gif" || strExtension === "png") {
+        switch (strExtension) {
+        case "ogg":
+        case "mp3":
+        case "wav":
+            return FSLoaderHelpers.TYPE_SOUND;
+        case "jpeg":
+        case "jpg":
+        case "gif":
+        case "png":
             return FSLoaderHelpers.TYPE_IMAGE;
-        } else if (strExtension === "css") {
-            return FSLoaderHelpers.TYPE_CSS;
-        } else {
+        case "json":
             return FSLoaderHelpers.TYPE_JSON;
+        case "xml":
+            return FSLoaderHelpers.TYPE_XML;
+        case "css":
+            return FSLoaderHelpers.TYPE_CSS;
+        case "js":
+            return FSLoaderHelpers.TYPE_SCRIPT;
+        case 'svg':
+            return FSLoaderHelpers.TYPE_SVG;
+        default:
+            return FSLoaderHelpers.TYPE_TEXT;
         }
     },
 
     //verify by the file type if its binary or not
     isBinary: function(pStrType) {
+        "use strict";
         switch (pStrType) {
-            case FSLoaderHelpers.TYPE_IMAGE:
-            case FSLoaderHelpers.TYPE_SOUND:
-                return true;
-            default:
-                return false;
+        case FSLoaderHelpers.TYPE_IMAGE:
+        case FSLoaderHelpers.TYPE_SOUND:
+            return true;
+        default:
+            return false;
         };
     },
 
     executeLoad: function (pFSLoaderItem) {
+        "use strict";
+        this.lastItem = pFSLoaderItem;
+        this.items.push(pFSLoaderItem);
+
         //LOAD ASSET AS TAG
         if (this.loading_type === FSLoaderHelpers.LOAD_AS_TAGS) {
 
@@ -296,9 +320,6 @@ FSLoader.prototype = {
                 onStartCallback;
 
             pFSLoaderItem.element = elScript;
-
-            this.lastItem = pFSLoaderItem;
-            this.items.push(pFSLoaderItem);
 
             //trigger event callback
             if (onStartCallback !== undefined) {
@@ -404,13 +425,13 @@ FSLoader.prototype = {
     onItemLoadComplete: function (event) {
         "use strict";
         this.state = FSLoaderHelpers.STATE_FINISHED;
+        this.progress = 100;
 
         if (this.reference.loading_type === FSLoaderHelpers.LOAD_AS_TAGS) {
             this.data = this.element;
         }else if (this.reference.loading_type === FSLoaderHelpers.LOAD_AS_XHR) {
             //this.data =
             this.element = event.currentTarget;
-            console.log(event);
         }
 
         //this.data = this.element.nodeValue;
@@ -465,3 +486,48 @@ FSLoader.prototype = {
         this.reference.removeEventsFromElement(this.element);
     }
 };
+
+//TODO: Develop the queue controller
+window.FSLoaderQueue = function () {
+    "use strict";
+    this.items = [ ];
+    this.currentIndex = [ ];
+    this.currentItem = undefined;
+    this.ignoreErrors = true;
+};
+FSLoaderQueue.prototype = new FSLoader;
+FSLoaderQueue.prototype.constructor = window.FSLoaderQueue;
+FSLoaderQueue.prototype.add = function (pStrPath, pObjOptions) {
+    "use strict";
+    this.items.push(this.load(pStrPath, pObjOptions));
+};
+FSLoaderQueue.prototype.start = function () {
+    "use strict";
+
+};
+/*FSLoaderQueue.prototype = {
+ add: function (pStrPath, pObjOptions) {
+ "use strict";
+ console.log(this);
+ },
+
+ start: function () {
+
+ },
+
+ pause: function () {
+
+ },
+
+ stop: function () {
+
+ },
+
+ get: function () {
+
+ },
+
+ dispose: function() {
+
+ }
+ }*/
