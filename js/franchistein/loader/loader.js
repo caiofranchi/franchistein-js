@@ -427,6 +427,11 @@ FSLoader.prototype = {
         this.state = FSLoaderHelpers.STATE_FINISHED;
         this.progress = 100;
 
+        //if the item belongs to a queue, exec the callback
+        if (this.queue !== undefined) {
+            this.queue.onQueueItemComplete(this);
+        };
+
         if (this.reference.loading_type === FSLoaderHelpers.LOAD_AS_TAGS) {
             this.data = this.element;
         }else if (this.reference.loading_type === FSLoaderHelpers.LOAD_AS_XHR) {
@@ -457,7 +462,12 @@ FSLoader.prototype = {
         this.state = FSLoaderHelpers.STATE_LOADING;
         this.bytesLoaded = event.loaded;
         this.bytesTotal =  event.total;
-        this.progress = Math.ceil((100 * this.bytesLoaded)/this.bytesTotal);
+        this.progress = Math.ceil((100 * this.bytesLoaded) / this.bytesTotal);
+
+        //if the item belongs to a queue, exec the callback
+        if (this.queue !== undefined) {
+            this.queue.onQueueItemProgress(this);
+        };
 
         if (this.options.onprogress !== undefined) {
             if (this.options.onprogressparams !== undefined) {
@@ -475,6 +485,11 @@ FSLoader.prototype = {
         //assign
         this.state = FSLoaderHelpers.STATE_ERROR;
 
+        //if the item belongs to a queue, exec the callback
+        if (this.queue !== undefined) {
+            this.queue.onQueueItemError(this);
+        };
+
         if (this.options.onerror !== undefined) {
             if (this.options.onerrorparams !== undefined) {
                 this.options.onerror.apply(this, this.options.onerrorparams);
@@ -487,24 +502,74 @@ FSLoader.prototype = {
     }
 };
 
-//TODO: Develop the queue controller
-window.FSLoaderQueue = function () {
+/*
+* Object for controlling a queue of loadable items
+* */
+window.FSLoaderQueue = function (pLoadingType, pObjDefaultOptions) {
     "use strict";
     this.items = [ ];
     this.currentIndex = [ ];
     this.currentItem = undefined;
     this.ignoreErrors = true;
+
+    //
+    this.loading_type = pLoadingType;
+    this.default_options = pObjDefaultOptions;
 };
+
 FSLoaderQueue.prototype = new FSLoader;
 FSLoaderQueue.prototype.constructor = window.FSLoaderQueue;
-FSLoaderQueue.prototype.add = function (pStrPath, pObjOptions) {
+
+FSLoaderQueue.prototype.add = function (pStrPath, pObjOptions) { //onqueueerror,onqueuecomplete,onqueueprogress
     "use strict";
-    this.items.push(this.load(pStrPath, pObjOptions));
+    var currentItem = this.load(pStrPath, pObjOptions);
+    currentItem.queue = this;
+    this.items.push(currentItem);
 };
+
 FSLoaderQueue.prototype.start = function () {
     "use strict";
+    this.executeLoad(this.items[this.currentIndex]);
+};
+/*
+FSLoaderQueue.prototype.next = function () {
+
+}
+*/
+FSLoaderQueue.prototype.verifyQueueEnd = function () {
+    if(this.currentIndex < (this.items.length-1)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+FSLoaderQueue.prototype.onQueueItemComplete = function (pItem) {
+    if(this.verifyQueueEnd()) {
+        this.currentIndex++;
+        this.start();
+    } else {
+        //queue complete
+    }
+};
+
+FSLoaderQueue.prototype.onQueueItemError = function (pItem) {
+    if (this.ignoreErrors) {
+        if(this.verifyQueueEnd()) {
+            this.currentIndex++;
+            this.start();
+        } else {
+            //queue complete
+        }
+    }else {
+        //trigger on queue error
+    }
+};
+
+FSLoaderQueue.prototype.onQueueItemProgress = function (pItem) {
 
 };
+
 /*FSLoaderQueue.prototype = {
  add: function (pStrPath, pObjOptions) {
  "use strict";
