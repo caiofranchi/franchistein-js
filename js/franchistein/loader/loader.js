@@ -24,6 +24,7 @@ window.FSLoaderHelpers = {
     //LOADING TYPES
     LOAD_AS_TAGS : "tag",
     LOAD_AS_XHR : "xhr",
+    DEFAULT_LOAD_TYPE : "tag",
 
     //LOADER TYPES (read-only)
     TYPE_SCRIPT : "script",
@@ -50,6 +51,10 @@ window.FSLoaderHelpers = {
         "use strict";
         var identifiedQueue = new FSLoaderQueue();
         return identifiedQueue;
+    },
+
+    evaluateOptions : function (pObjOptions) {
+
     }
 };
 /*
@@ -67,13 +72,15 @@ window.FSLoaderItem = function (pRef, pStrPath, pObjOptions) {
     //setup
     this.id = "loader-item-" + pRef.items.length; //it the id was not set, generate automatically
     this.path = pStrPath;
-    this.options = pObjOptions;
+    this.options = {};
     this.reference = pRef;
     this.data = undefined;
     this.bytesTotal = 0;
     this.bytesLoaded = 0;
     this.progress = 0;
     this.type = undefined;
+    this.retries = 0;
+    this.retriesLeft = 0;
 
     //preventCache?
     this.preventCache = false;
@@ -87,7 +94,8 @@ window.FSLoaderItem = function (pRef, pStrPath, pObjOptions) {
     this.bytesLoaded = 0;
     this.progress = 0;
 
-    if (pObjOptions) {
+    if (pObjOptions !== undefined) {
+        this.options = pObjOptions;
         //id
         if (pObjOptions.id !== undefined) {
             this.id = pObjOptions.id;
@@ -105,9 +113,8 @@ window.FSLoaderItem = function (pRef, pStrPath, pObjOptions) {
         }
 
         //retries?
-        this.retries = 0;
         if (pObjOptions.retries !== undefined) {
-            this.retries = pObjOptions.retries;
+            this.retries = this.retriesLeft = pObjOptions.retries;
         }
     } else {
         //type of file
@@ -122,24 +129,29 @@ window.FSLoader = function (pLoadingType, pObjDefaultOptions) {
     this.lastItem = undefined;
     this.currentLoading = false;
     this.items = [ ];
-    this.default_options = pObjDefaultOptions;
+    this.options = { };
     this.currentRequest = undefined;
 
     //SET DEFAULTS
 
     //set loading type
-    this.loading_type = pLoadingType;    if (this.loading_type === FSLoaderHelpers.LOAD_AS_XHR) {
+    this.loadingType = pLoadingType;
+    if (pLoadingType === undefined) {
+        this.loadingType = FSLoaderHelpers.DEFAULT_LOAD_TYPE;
+    }
+    if (this.loadingType === FSLoaderHelpers.LOAD_AS_XHR) {
         //verify if the browser has capabilities
         if (window.XMLHttpRequest === null) {
             //if xhr is available
-            this.loading_type = FSLoaderHelpers.LOAD_AS_TAGS;
+            this.loadingType = FSLoaderHelpers.LOAD_AS_TAGS;
         }
     }
 
+    if (pObjDefaultOptions !== undefined) this.options = pObjDefaultOptions;
 
     // set the default container
-    if (this.default_options !== undefined && this.default_options["container"] !== undefined) {
-        this.containerElement = this.default_options.container;
+    if (this.options !== undefined && this.options["container"] !== undefined) {
+        this.containerElement = this.options.container;
     } else {
         this.containerElement = document.createElement("div");
         this.containerElement.id = "divContainerFSLoader";
@@ -305,10 +317,10 @@ FSLoader.prototype = {
         this.items.push(pFSLoaderItem);
 
         //LOAD ASSET AS TAG
-        if (this.loading_type === FSLoaderHelpers.LOAD_AS_TAGS) {
+        if (pFSLoaderItem.reference.loadingType === FSLoaderHelpers.LOAD_AS_TAGS) {
 
             //assign on start
-            if (pFSLoaderItem.options.onstart !== undefined) {
+            if (pFSLoaderItem.options["onstart"] !== undefined) {
                 onStartCallback = pFSLoaderItem.options.onstart;
             }
 
@@ -316,7 +328,7 @@ FSLoader.prototype = {
             pFSLoaderItem.state = pFSLoaderItem.STATE_STARTED;
 
             //load as tags
-            var elScript = this.generateTagByType(pFSLoaderItem.type,this.evaluateURL(pFSLoaderItem.path,pFSLoaderItem.preventCache)),
+            var elScript = this.generateTagByType(pFSLoaderItem.type, this.evaluateURL(pFSLoaderItem.path, pFSLoaderItem.preventCache)),
                 onStartCallback;
 
             pFSLoaderItem.element = elScript;
@@ -358,7 +370,7 @@ FSLoader.prototype = {
                 throw new Error("Cannot appendChild script on the given container element.");
             };
 
-        } else if (this.loading_type === FSLoaderHelpers.LOAD_AS_XHR) {
+        } else if (pFSLoaderItem.reference.loadingType === FSLoaderHelpers.LOAD_AS_XHR) {
             //LOAD ASSET WITH XHR
             var xhrLevel = 1;
 
@@ -432,9 +444,9 @@ FSLoader.prototype = {
             this.queue.onQueueItemComplete(this);
         };
 
-        if (this.reference.loading_type === FSLoaderHelpers.LOAD_AS_TAGS) {
+        if (this.reference.loadingType === FSLoaderHelpers.LOAD_AS_TAGS) {
             this.data = this.element;
-        }else if (this.reference.loading_type === FSLoaderHelpers.LOAD_AS_XHR) {
+        }else if (this.reference.loadingType === FSLoaderHelpers.LOAD_AS_XHR) {
             //this.data =
             this.element = event.currentTarget;
         }
@@ -455,7 +467,7 @@ FSLoader.prototype = {
     onItemLoadProgress: function (event) {
         "use strict";
         //prevent blank
-        if(event.loaded > 0 && event.total == 0) {
+        if(event.loaded > 0 && event.total === 0) {
             return;
         }
         //assign
@@ -482,23 +494,37 @@ FSLoader.prototype = {
     onItemLoadError: function (event) {
         "use strict";
 
-        //assign
-        this.state = FSLoaderHelpers.STATE_ERROR;
-
-        //if the item belongs to a queue, exec the callback
-        if (this.queue !== undefined) {
-            this.queue.onQueueItemError(this);
-        };
-
-        if (this.options.onerror !== undefined) {
-            if (this.options.onerrorparams !== undefined) {
-                this.options.onerror.apply(this, this.options.onerrorparams);
-            } else {
-                this.options.onerror.apply(this);
-            }
-        }
         //removing events from the element
         this.reference.removeEventsFromElement(this.element);
+
+        //if the item still retrying to load (with timeout)
+        if (this.retriesLeft > 0) {
+            //try again
+            this.retriesLeft--;
+            var ref = this;
+            setTimeout(function () {
+                ref.reference.executeLoad(ref);
+            }, 100);
+
+        } else {
+            //retries has ended, consider the error
+
+            //assign
+            this.state = FSLoaderHelpers.STATE_ERROR;
+
+            //if the item belongs to a queue, exec the callback
+            if (this.queue !== undefined) {
+                this.queue.onQueueItemError(this);
+            };
+
+            if (this.options.onerror !== undefined) {
+                if (this.options.onerrorparams !== undefined) {
+                    this.options.onerror.apply(this, this.options.onerrorparams);
+                } else {
+                    this.options.onerror.apply(this);
+                }
+            };
+        }
     }
 };
 
@@ -507,14 +533,35 @@ FSLoader.prototype = {
 * */
 window.FSLoaderQueue = function (pLoadingType, pObjDefaultOptions) {
     "use strict";
+    this.reference = new FSLoader(pLoadingType, pObjDefaultOptions);
     this.items = [ ];
-    this.currentIndex = [ ];
+    this.currentIndex = 0;
     this.currentItem = undefined;
     this.ignoreErrors = true;
-
+    this.isPaused = false;
     //
-    this.loading_type = pLoadingType;
-    this.default_options = pObjDefaultOptions;
+    this.total = 0;
+    this.totalLoaded = 0;
+    this.progress = 0;
+    //
+    /*this.loadingType = pLoadingType;
+    if (this.loadingType === undefined) {
+        this.loadingType = FSLoaderHelpers.DEFAULT_LOAD_TYPE;
+    }*/
+
+    this.options = {};
+
+    if (pObjDefaultOptions !== undefined) this.options = pObjDefaultOptions;
+
+    if (this.options !== undefined) {
+        if (this.options.ignoreErrors !== undefined) {
+            this.ignoreErrors = this.options.ignoreErrors;
+        };
+
+       if (this.options.ignoreErrors !== undefined) {
+           this.ignoreErrors = this.options.ignoreErrors;
+       };
+    }
 };
 
 FSLoaderQueue.prototype = new FSLoader;
@@ -522,22 +569,36 @@ FSLoaderQueue.prototype.constructor = window.FSLoaderQueue;
 
 FSLoaderQueue.prototype.add = function (pStrPath, pObjOptions) { //onqueueerror,onqueuecomplete,onqueueprogress
     "use strict";
-    var currentItem = this.load(pStrPath, pObjOptions);
+    var currentItem = this.load(pStrPath, pObjOptions,false);
     currentItem.queue = this;
+    currentItem.reference = this.reference;
     this.items.push(currentItem);
+    this.total = this.items.length;
 };
 
 FSLoaderQueue.prototype.start = function () {
     "use strict";
-    this.executeLoad(this.items[this.currentIndex]);
+    this.triggerCallbackEvent("onqueuestart");
+    this.currentItem = this.executeLoad(this.items[this.currentIndex]);
 };
-/*
-FSLoaderQueue.prototype.next = function () {
 
+FSLoaderQueue.prototype.pause = function () {
+    "use strict";
+    //this.currentItem.stop();
+};
+
+FSLoaderQueue.prototype.next = function () {
+    this.currentIndex++;
+    this.start();
 }
-*/
+
+FSLoaderQueue.prototype.previous = function () {
+    this.currentIndex--;
+    this.start();
+}
+
 FSLoaderQueue.prototype.verifyQueueEnd = function () {
-    if(this.currentIndex < (this.items.length-1)) {
+    if (this.currentIndex < (this.total)) {
         return true;
     } else {
         return false;
@@ -546,53 +607,51 @@ FSLoaderQueue.prototype.verifyQueueEnd = function () {
 
 FSLoaderQueue.prototype.onQueueItemComplete = function (pItem) {
     if(this.verifyQueueEnd()) {
-        this.currentIndex++;
-        this.start();
+        this.next();
+        //
+        this.triggerCallbackEvent("onqueueprogress");
     } else {
         //queue complete
+        this.triggerCallbackEvent("onqueuecomplete");
     }
 };
 
 FSLoaderQueue.prototype.onQueueItemError = function (pItem) {
     if (this.ignoreErrors) {
         if(this.verifyQueueEnd()) {
-            this.currentIndex++;
-            this.start();
+            this.next();
+            this.triggerCallbackEvent("onqueueprogress");
         } else {
             //queue complete
+            this.triggerCallbackEvent("onqueuecomplete");
         }
     }else {
         //trigger on queue error
+        this.triggerCallbackEvent("onqueueerror");
     }
 };
 
 FSLoaderQueue.prototype.onQueueItemProgress = function (pItem) {
-
+    this.triggerCallbackEvent("onqueueprogress");
 };
 
-/*FSLoaderQueue.prototype = {
- add: function (pStrPath, pObjOptions) {
- "use strict";
- console.log(this);
- },
+FSLoaderQueue.prototype.onQueueItemStart = function (pItem) {
+    //this.triggerCallbackEvent("onitemstart",pItem);
+};
 
- start: function () {
+FSLoaderQueue.prototype.triggerCallbackEvent = function (pStrEventID, pDefinedSource) {
+    var ref = this;
+    if (pDefinedSource !== undefined) {
+        //exec on base of other reference
+        ref = pDefinedSource
+    }
 
- },
-
- pause: function () {
-
- },
-
- stop: function () {
-
- },
-
- get: function () {
-
- },
-
- dispose: function() {
-
- }
- }*/
+    if (ref.options === undefined) return;
+    if (ref.options[pStrEventID] !== undefined) {
+        if (ref.options[pStrEventID + "params"] !== undefined) {
+            ref.options[pStrEventID].apply(ref, ref.options[pStrEventID + "params"]);
+        } else {
+            ref.options[pStrEventID].apply(ref);
+        }
+    };
+};
