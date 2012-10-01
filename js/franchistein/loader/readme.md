@@ -4,8 +4,17 @@
 
 ## Quick start
 
-lalala
+### SETTING UP A SIMPLE FS LOADER
 
+### SINGLE EVENTS
+
+### SETTING UP A QUEUE
+
+### QUEUE EVENTS
+
+### PRELOADER
+
+### PRELOADER EVENTS
 
 ## Features
 
