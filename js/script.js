@@ -6,10 +6,24 @@ var MainLoader = new FSLoader(FSLoaderHelpers.LOAD_AS_TAGS);
 MainLoader.load("js/libs/jquery-1.8.0.min.js",{retries:1,id:"jQueryLocal",onstart:onStartManolo,onstartparams:["piru","piruDouble"],onerror:onErrorManolo,oncomplete:onCompleteManolo}); //container:document.getElementsByTagName("head")[0],
 MainLoader.load("img/logo.png",{id:"LOGO-LOCAL",onstart:onStartManolo,onstartparams:["piru","piruDouble"],onerror:onErrorManolo,oncomplete:onCompleteManolo}); //container:document.getElementsByTagName("head")[0],
 */
+
+function onCompletejQuery () {
+    console.log("Complete external jQuery");
+}
+
+function onCompleteItem ()  {
+    console.log("COMPLETE ITEM" + this.currentItem.id);
+}
+
 function onCompleteManolo () {
-    console.log("COMPLETE");
-    console.log(this);
+    console.log("COMPLETE QUEUE");
+    //console.log(this);
     //document.getElementById("main-content").appendChild(this.element);
+}
+
+function onQueueProgress () {
+    console.log("progress: " + this.progress);
+    document.getElementById("porc").innerHTML = this.progress;
 }
 
 function onStartManolo() {
@@ -17,13 +31,15 @@ function onStartManolo() {
     //console.log(this);
 }
 
-function onErrorManolo () {
+function onErrorQueue () {
     console.log("ERROR");
    //console.log(this);
 }
 
 
-var queue  = new FSLoaderQueue();
+var queue  = new FSLoaderQueue(undefined, {ignoreErrors:true,onqueueerror:onErrorQueue,onqueuecomplete:onCompleteManolo,onitemcomplete:onCompleteItem,onqueueprogress:onQueueProgress});
 queue.add("img/logo.png");
-queue.add("js/libs/jquery-1.8.0.min.js",{oncomplete:onCompleteManolo});
+queue.add("//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js", {id:"jquery-external",oncomplete:onCompletejQuery});
+queue.add("js/libs/jquery-1.8.0.min.js");
+queue.add("http://caiofranchi.com.br/clientes/silika/pernambucanas/img/logo.png");
 queue.start();

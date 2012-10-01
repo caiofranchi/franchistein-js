@@ -27,10 +27,9 @@ window.FSLoaderHelpers = {
     DEFAULT_LOAD_TYPE : "tag",
 
     //LOADER TYPES (read-only)
-    TYPE_SCRIPT : "script",
+    TYPE_JAVASCRIPT : "script",
     TYPE_CSS : "css",
     TYPE_IMAGE : "image",
-    TYPE_SWF : "flash",
     TYPE_SOUND : "sound",
     TYPE_JSON : "json",
     TYPE_XML : "xml",
@@ -44,28 +43,42 @@ window.FSLoaderHelpers = {
     STATE_FINISHED : "complete",
     STATE_ERROR : "error",
 
+    //OPTIONS
+    REGISTERED_LOADER_OPTIONS : ["id", "preventCache", "container"],
+    REGISTERED_QUEUE_OPTIONS : ["id", "preventCache", "container", "ignoreErrors", "onitemerror", "onitemerrorparams", "onitemcomplete", "onitemcompleteparams", "onitemstart", "onitemstartparams", "onqueueerror", "onqueueerrorparams", "onqueuecomplete", "onqueuecompleteparams", "onqueueprogress", "onqueueprogressparams"],
+    REGISTERED_ITEM_OPTIONS : ["id", "preventCache", "type", "onstart", "onstartparams", "onerror", "onerrorparams", "oncomplete", "oncompleteparams"],
+    MERGE_OPTIONS : ["preventCache"],
+
     //Registered internal modules
     MODULE_BASE : "js/franchistein/",
 
-    parseContent : function () {
+    parseContent : function (pObjOption) { //{images:true|false,css:true|false,scope:document.body|HTMLElement}
         "use strict";
         var identifiedQueue = new FSLoaderQueue();
         return identifiedQueue;
     },
 
-    evaluateOptions : function (pObjOptions) {
+    //method for evaluating item options from father element option (queue or fs loader)
+    evaluateOptions : function (pFSLoaderItem, pFather) {
 
+        var curOptions = pFSLoaderItem.options;
+        var fatherOptions = pFather.options;
+
+        //merge then together respecting the object hierarchy
+        console.log(curOptions);
+        console.log(fatherOptions);
+
+        //evaluating son properties
+        for (var i in curOptions) {
+            if (curOptions.hasOwnProperty(i)) {
+                if(i.indexOf)
+                console.log(i + " : " + curOptions[i]);
+            }
+        }
+
+        return curOptions;
     }
 };
-/*
-window.FSLoaderQueue = function (pID, pObjDefaultOptions) {  //disposeAfterLoading, preventCache, onQueueLoadStart, onQueueLoadComplete, onQueuelLoadProgress
-    "use strict";
-    this.items = [ ];
-    this.currentIndex = [ ];
-    this.currentItem = undefined;
-    this.ignoreErrors = true;
-};
-*/
 
 window.FSLoaderItem = function (pRef, pStrPath, pObjOptions) {
     "use strict";
@@ -75,9 +88,6 @@ window.FSLoaderItem = function (pRef, pStrPath, pObjOptions) {
     this.options = {};
     this.reference = pRef;
     this.data = undefined;
-    this.bytesTotal = 0;
-    this.bytesLoaded = 0;
-    this.progress = 0;
     this.type = undefined;
     this.retries = 0;
     this.retriesLeft = 0;
@@ -123,7 +133,7 @@ window.FSLoaderItem = function (pRef, pStrPath, pObjOptions) {
 };
 
 //TODO: Transform class into MODULE pattern
-window.FSLoader = function (pLoadingType, pObjDefaultOptions) {
+window.FSLoader = function (pLoadingType, pObjDefaultOptions) { //pObjOptions = {container,onstart,onerror,oncomplete,type:swf|img|js|css,preventCache:true|false,onstartparams}
     "use strict";
     // VARS
     this.lastItem = undefined;
@@ -168,7 +178,7 @@ FSLoader.prototype = {
         //TODO: look for a user-friendly way to load modules from the suite
     },
 
-    load: function (pStrPath, pObjOptions, pAutoLoad) { //pObjOptions = {container,onstart,onerror,oncomplete,type:swf|img|js|css,preventCache:true|false,onstartparams}
+    load: function (pStrPath, pObjOptions, pAutoLoad) {
         "use strict";
         var strType;
 
@@ -241,7 +251,7 @@ FSLoader.prototype = {
         switch (pStrType) {
         case FSLoaderHelpers.TYPE_CSS:
             return this.getCssTag(pStrPath);
-        case FSLoaderHelpers.TYPE_SCRIPT:
+        case FSLoaderHelpers.TYPE_JAVASCRIPT:
             return this.getJavascriptTag(pStrPath);
         case FSLoaderHelpers.TYPE_IMAGE:
             return this.getImageTag(pStrPath);
@@ -291,7 +301,7 @@ FSLoader.prototype = {
         case "css":
             return FSLoaderHelpers.TYPE_CSS;
         case "js":
-            return FSLoaderHelpers.TYPE_SCRIPT;
+            return FSLoaderHelpers.TYPE_JAVASCRIPT;
         case 'svg':
             return FSLoaderHelpers.TYPE_SVG;
         default:
@@ -316,31 +326,40 @@ FSLoader.prototype = {
         this.lastItem = pFSLoaderItem;
         this.items.push(pFSLoaderItem);
 
+        //assign on start
+        var onStartCallback;
+        if (pFSLoaderItem.options["onstart"] !== undefined) {
+            onStartCallback = pFSLoaderItem.options.onstart;
+        };
+
+        //trigger event callback
+        if (onStartCallback !== undefined) {
+            if (pFSLoaderItem.options.onstartparams !== undefined) {
+                onStartCallback.apply(pFSLoaderItem, pFSLoaderItem.options.onstartparams);
+            } else {
+                onStartCallback.apply(pFSLoaderItem);
+            }
+        };
+
+
+        //if the item belongs to a queue, exec the callback
+        if (pFSLoaderItem.queue !== undefined) {
+            pFSLoaderItem.queue.onQueueItemStart(this);
+        };
+
         //LOAD ASSET AS TAG
         if (pFSLoaderItem.reference.loadingType === FSLoaderHelpers.LOAD_AS_TAGS) {
 
-            //assign on start
-            if (pFSLoaderItem.options["onstart"] !== undefined) {
-                onStartCallback = pFSLoaderItem.options.onstart;
-            }
+
 
             //refresh FSLoaderItemElement
             pFSLoaderItem.state = pFSLoaderItem.STATE_STARTED;
 
             //load as tags
-            var elScript = this.generateTagByType(pFSLoaderItem.type, this.evaluateURL(pFSLoaderItem.path, pFSLoaderItem.preventCache)),
-                onStartCallback;
+            var elScript = this.generateTagByType(pFSLoaderItem.type, this.evaluateURL(pFSLoaderItem.path, pFSLoaderItem.preventCache));
 
             pFSLoaderItem.element = elScript;
 
-            //trigger event callback
-            if (onStartCallback !== undefined) {
-                if (pFSLoaderItem.options.onstartparams !== undefined) {
-                    onStartCallback.apply(pFSLoaderItem, pFSLoaderItem.options.onstartparams);
-                } else {
-                    onStartCallback.apply(pFSLoaderItem);
-                }
-            }
 
             //loading
             pFSLoaderItem.state = pFSLoaderItem.STATE_LOADING;
@@ -467,14 +486,14 @@ FSLoader.prototype = {
     onItemLoadProgress: function (event) {
         "use strict";
         //prevent blank
-        if(event.loaded > 0 && event.total === 0) {
+        if (event.loaded > 0 && event.total === 0) {
             return;
         }
         //assign
         this.state = FSLoaderHelpers.STATE_LOADING;
         this.bytesLoaded = event.loaded;
         this.bytesTotal =  event.total;
-        this.progress = Math.ceil((100 * this.bytesLoaded) / this.bytesTotal);
+        this.progress = Math.round((100 * this.bytesLoaded) / this.bytesTotal);
 
         //if the item belongs to a queue, exec the callback
         if (this.queue !== undefined) {
@@ -526,132 +545,4 @@ FSLoader.prototype = {
             };
         }
     }
-};
-
-/*
-* Object for controlling a queue of loadable items
-* */
-window.FSLoaderQueue = function (pLoadingType, pObjDefaultOptions) {
-    "use strict";
-    this.reference = new FSLoader(pLoadingType, pObjDefaultOptions);
-    this.items = [ ];
-    this.currentIndex = 0;
-    this.currentItem = undefined;
-    this.ignoreErrors = true;
-    this.isPaused = false;
-    //
-    this.total = 0;
-    this.totalLoaded = 0;
-    this.progress = 0;
-    //
-    /*this.loadingType = pLoadingType;
-    if (this.loadingType === undefined) {
-        this.loadingType = FSLoaderHelpers.DEFAULT_LOAD_TYPE;
-    }*/
-
-    this.options = {};
-
-    if (pObjDefaultOptions !== undefined) this.options = pObjDefaultOptions;
-
-    if (this.options !== undefined) {
-        if (this.options.ignoreErrors !== undefined) {
-            this.ignoreErrors = this.options.ignoreErrors;
-        };
-
-       if (this.options.ignoreErrors !== undefined) {
-           this.ignoreErrors = this.options.ignoreErrors;
-       };
-    }
-};
-
-FSLoaderQueue.prototype = new FSLoader;
-FSLoaderQueue.prototype.constructor = window.FSLoaderQueue;
-
-FSLoaderQueue.prototype.add = function (pStrPath, pObjOptions) { //onqueueerror,onqueuecomplete,onqueueprogress
-    "use strict";
-    var currentItem = this.load(pStrPath, pObjOptions,false);
-    currentItem.queue = this;
-    currentItem.reference = this.reference;
-    this.items.push(currentItem);
-    this.total = this.items.length;
-};
-
-FSLoaderQueue.prototype.start = function () {
-    "use strict";
-    this.triggerCallbackEvent("onqueuestart");
-    this.currentItem = this.executeLoad(this.items[this.currentIndex]);
-};
-
-FSLoaderQueue.prototype.pause = function () {
-    "use strict";
-    //this.currentItem.stop();
-};
-
-FSLoaderQueue.prototype.next = function () {
-    this.currentIndex++;
-    this.start();
-}
-
-FSLoaderQueue.prototype.previous = function () {
-    this.currentIndex--;
-    this.start();
-}
-
-FSLoaderQueue.prototype.verifyQueueEnd = function () {
-    if (this.currentIndex < (this.total)) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-FSLoaderQueue.prototype.onQueueItemComplete = function (pItem) {
-    if(this.verifyQueueEnd()) {
-        this.next();
-        //
-        this.triggerCallbackEvent("onqueueprogress");
-    } else {
-        //queue complete
-        this.triggerCallbackEvent("onqueuecomplete");
-    }
-};
-
-FSLoaderQueue.prototype.onQueueItemError = function (pItem) {
-    if (this.ignoreErrors) {
-        if(this.verifyQueueEnd()) {
-            this.next();
-            this.triggerCallbackEvent("onqueueprogress");
-        } else {
-            //queue complete
-            this.triggerCallbackEvent("onqueuecomplete");
-        }
-    }else {
-        //trigger on queue error
-        this.triggerCallbackEvent("onqueueerror");
-    }
-};
-
-FSLoaderQueue.prototype.onQueueItemProgress = function (pItem) {
-    this.triggerCallbackEvent("onqueueprogress");
-};
-
-FSLoaderQueue.prototype.onQueueItemStart = function (pItem) {
-    //this.triggerCallbackEvent("onitemstart",pItem);
-};
-
-FSLoaderQueue.prototype.triggerCallbackEvent = function (pStrEventID, pDefinedSource) {
-    var ref = this;
-    if (pDefinedSource !== undefined) {
-        //exec on base of other reference
-        ref = pDefinedSource
-    }
-
-    if (ref.options === undefined) return;
-    if (ref.options[pStrEventID] !== undefined) {
-        if (ref.options[pStrEventID + "params"] !== undefined) {
-            ref.options[pStrEventID].apply(ref, ref.options[pStrEventID + "params"]);
-        } else {
-            ref.options[pStrEventID].apply(ref);
-        }
-    };
 };
