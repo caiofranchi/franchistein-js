@@ -55,10 +55,7 @@ FSLoaderQueue.prototype.add = function (pStrPath, pObjOptions) { //onqueueerror,
     currentItem.queue = this;
     currentItem.reference = this.reference;
 
-    //merge object and queue options
-    currentItem.options = FSLoaderHelpers.evaluateOptions(currentItem, this);
-
-    this.items.push(currentItem);
+    //this.items.push(currentItem); //already execs on inherited method LOAD
     this.total = this.items.length;
 };
 
@@ -102,6 +99,8 @@ FSLoaderQueue.prototype.verifyQueueEnd = function () {
 
 FSLoaderQueue.prototype.onQueueItemComplete = function (pItem) {
 
+    this.totalLoaded++;
+
     //trigger the single item event
     this.triggerCallbackEvent("onitemcomplete");
     //
@@ -133,7 +132,7 @@ FSLoaderQueue.prototype.onQueueItemError = function (pItem) {
             //queue complete
             this.triggerCallbackEvent("onqueuecomplete");
         }
-    }else {
+    } else {
         //trigger on queue error
         this.triggerCallbackEvent("onqueueerror");
     }

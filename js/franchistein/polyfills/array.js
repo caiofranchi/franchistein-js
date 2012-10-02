@@ -7,7 +7,7 @@
 if (!Array.prototype.indexOf) {
     Array.prototype.indexOf = function (searchElement /*, fromIndex */ ) {
         "use strict";
-        if (this == null) {
+        if (this === null) {
             throw new TypeError();
         }
         var t = Object(this);
@@ -18,9 +18,9 @@ if (!Array.prototype.indexOf) {
         var n = 0;
         if (arguments.length > 0) {
             n = Number(arguments[1]);
-            if (n != n) { // shortcut for verifying if it's NaN
+            if (n !== n) { // shortcut for verifying if it's NaN
                 n = 0;
-            } else if (n != 0 && n != Infinity && n != -Infinity) {
+            } else if (n !== 0 && n !== Infinity && n !== -Infinity) {
                 n = (n > 0 || -1) * Math.floor(Math.abs(n));
             }
         }
@@ -31,6 +31,18 @@ if (!Array.prototype.indexOf) {
         for (; k < len; k++) {
             if (k in t && t[k] === searchElement) {
                 return k;
+            }
+        }
+        return -1;
+    }
+}
+
+if (!Array.prototype.indexByObjectValue) {
+    Array.prototype.indexByObjectValue = function (pName, pValue) {
+        var total = this.length;
+        for (var i=0; i<total; i++) {
+            if (this[i][pName] === pValue) {
+                return i;
             }
         }
         return -1;

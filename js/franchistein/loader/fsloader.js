@@ -15,70 +15,30 @@
  * //queue loading
  *
  * //using for preloading assets for your sites
+ *
+ *
+ Copyright (c) 2012 Caio Franchi http://caiofranchi.com.br
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy of
+ this software and associated documentation files (the "Software"), to deal in
+ the Software without restriction, including without limitation the rights to
+ use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+ of the Software, and to permit persons to whom the Software is furnished to do
+ so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ SOFTWARE.
  */
 /*jslint browser: true*/
 /*global document,console,StringUtils*/
-
-window.FSLoaderHelpers = {
-
-    //LOADING TYPES
-    LOAD_AS_TAGS : "tag",
-    LOAD_AS_XHR : "xhr",
-    DEFAULT_LOAD_TYPE : "tag",
-
-    //LOADER TYPES (read-only)
-    TYPE_JAVASCRIPT : "script",
-    TYPE_CSS : "css",
-    TYPE_IMAGE : "image",
-    TYPE_SOUND : "sound",
-    TYPE_JSON : "json",
-    TYPE_XML : "xml",
-    TYPE_SVG : "svg",
-    TYPE_TEXT : "text",
-
-    //LOADING STATES (read-only)
-    STATE_UNLOADED : "unloaded",
-    STATE_STARTED : "started",
-    STATE_LOADING : "loading",
-    STATE_FINISHED : "complete",
-    STATE_ERROR : "error",
-
-    //OPTIONS
-    REGISTERED_LOADER_OPTIONS : ["id", "preventCache", "container"],
-    REGISTERED_QUEUE_OPTIONS : ["id", "preventCache", "container", "ignoreErrors", "onitemerror", "onitemerrorparams", "onitemcomplete", "onitemcompleteparams", "onitemstart", "onitemstartparams", "onqueueerror", "onqueueerrorparams", "onqueuecomplete", "onqueuecompleteparams", "onqueueprogress", "onqueueprogressparams"],
-    REGISTERED_ITEM_OPTIONS : ["id", "preventCache", "type", "onstart", "onstartparams", "onerror", "onerrorparams", "oncomplete", "oncompleteparams"],
-    MERGE_OPTIONS : ["preventCache"],
-
-    //Registered internal modules
-    MODULE_BASE : "js/franchistein/",
-
-    parseContent : function (pObjOption) { //{images:true|false,css:true|false,scope:document.body|HTMLElement}
-        "use strict";
-        var identifiedQueue = new FSLoaderQueue();
-        return identifiedQueue;
-    },
-
-    //method for evaluating item options from father element option (queue or fs loader)
-    evaluateOptions : function (pFSLoaderItem, pFather) {
-
-        var curOptions = pFSLoaderItem.options;
-        var fatherOptions = pFather.options;
-
-        //merge then together respecting the object hierarchy
-        console.log(curOptions);
-        console.log(fatherOptions);
-
-        //evaluating son properties
-        for (var i in curOptions) {
-            if (curOptions.hasOwnProperty(i)) {
-                if(i.indexOf)
-                console.log(i + " : " + curOptions[i]);
-            }
-        }
-
-        return curOptions;
-    }
-};
 
 window.FSLoaderItem = function (pRef, pStrPath, pObjOptions) {
     "use strict";
@@ -133,10 +93,18 @@ window.FSLoaderItem = function (pRef, pStrPath, pObjOptions) {
 };
 
 //TODO: Transform class into MODULE pattern
+/**
+
+ @author <a href="http://caiofranchi.com.br">Caio Franchi</a>
+
+ @namespace window
+
+ @class FSLoader
+
+ */
 window.FSLoader = function (pLoadingType, pObjDefaultOptions) { //pObjOptions = {container,onstart,onerror,oncomplete,type:swf|img|js|css,preventCache:true|false,onstartparams}
     "use strict";
     // VARS
-    this.lastItem = undefined;
     this.currentLoading = false;
     this.items = [ ];
     this.options = { };
@@ -178,12 +146,14 @@ FSLoader.prototype = {
         //TODO: look for a user-friendly way to load modules from the suite
     },
 
+    //load a single element
     load: function (pStrPath, pObjOptions, pAutoLoad) {
         "use strict";
         var strType;
 
         //create a FS Loader for the request
         var currentItem = this.generateLoaderItem(pStrPath, pObjOptions);
+        this.items.push(currentItem);
 
         if (pAutoLoad === undefined || pAutoLoad === true) {
            this.executeLoad(currentItem);
@@ -192,73 +162,29 @@ FSLoader.prototype = {
         return currentItem;
     },
 
-    getJavascriptTag: function (pStrPath) {
-        "use strict";
-        var elScript = document.createElement("script");
-
-        //setup element
-        elScript.setAttribute("type", "text/javascript");
-        elScript.setAttribute("src", pStrPath);
-
-        return elScript;
+    //get element by id
+    get: function (pValue) {
+        return this.getElementByAttribute("id", pValue);
     },
 
-    getSVGTag: function (pStrPath) {
-        "use strict";
-        var elScript = document.createElement("object");
-
-        //setup element
-        elScript.setAttribute("type", "image/svg+xml");
-        elScript.setAttribute("src", pStrPath);
-
-        return elScript;
-    },
-
-    getSoundTag: function (pStrPath) {
-        "use strict";
-        var elScript = document.createElement("audio");
-
-        //setup element
-        elScript.setAttribute("type", "audio/ogg");
-        elScript.setAttribute("src", pStrPath);
-
-        return elScript;
-    },
-
-    getCssTag: function (pStrPath) {
-        "use strict";
-        var elScript = document.createElement("link");
-        //setup element
-        elScript.setAttribute("rel", "stylesheet");
-        elScript.setAttribute("type", "text/css");
-        elScript.setAttribute("href", pStrPath);
-
-        return elScript;
-    },
-
-    getImageTag: function (pStrPath) {
-        "use strict";
-        var elScript = document.createElement("img");
-
-        //setup element
-        elScript.setAttribute("src", pStrPath);
-
-        return elScript;
+    //get element by attribute
+    getElementByAttribute: function (pAttribute, pValue) {
+        return this.items[this.items.indexByObjectValue(pAttribute, pValue)];
     },
 
     generateTagByType: function (pStrType, pStrPath) {
         "use strict";
         switch (pStrType) {
         case FSLoaderHelpers.TYPE_CSS:
-            return this.getCssTag(pStrPath);
+            return this.createCssTag(pStrPath);
         case FSLoaderHelpers.TYPE_JAVASCRIPT:
-            return this.getJavascriptTag(pStrPath);
+            return this.createJavascriptTag(pStrPath);
         case FSLoaderHelpers.TYPE_IMAGE:
-            return this.getImageTag(pStrPath);
+            return this.createImageTag(pStrPath);
         case FSLoaderHelpers.TYPE_SVG:
-            return this.getSVGTag(pStrPath);
+            return this.createSVGTag(pStrPath);
         case FSLoaderHelpers.TYPE_SOUND:
-            return this.getSoundTag(pStrPath);
+            return this.createSoundTag(pStrPath);
         };
     },
 
@@ -309,22 +235,62 @@ FSLoader.prototype = {
         }
     },
 
-    //verify by the file type if its binary or not
-    isBinary: function(pStrType) {
+    createJavascriptTag: function (pStrPath) {
         "use strict";
-        switch (pStrType) {
-        case FSLoaderHelpers.TYPE_IMAGE:
-        case FSLoaderHelpers.TYPE_SOUND:
-            return true;
-        default:
-            return false;
-        };
+        var elScript = document.createElement("script");
+
+        //setup element
+        elScript.setAttribute("type", "text/javascript");
+        elScript.setAttribute("src", pStrPath);
+
+        return elScript;
+    },
+
+    createSVGTag: function (pStrPath) {
+        "use strict";
+        var elScript = document.createElement("object");
+
+        //setup element
+        elScript.setAttribute("type", "image/svg+xml");
+        elScript.setAttribute("src", pStrPath);
+
+        return elScript;
+    },
+
+    createSoundTag: function (pStrPath) {
+        "use strict";
+        var elScript = document.createElement("audio");
+
+        //setup element
+        elScript.setAttribute("type", "audio/ogg");
+        elScript.setAttribute("src", pStrPath);
+
+        return elScript;
+    },
+
+    createCssTag: function (pStrPath) {
+        "use strict";
+        var elScript = document.createElement("link");
+        //setup element
+        elScript.setAttribute("rel", "stylesheet");
+        elScript.setAttribute("type", "text/css");
+        elScript.setAttribute("href", pStrPath);
+
+        return elScript;
+    },
+
+    createImageTag: function (pStrPath) {
+        "use strict";
+        var elScript = document.createElement("img");
+
+        //setup element
+        elScript.setAttribute("src", pStrPath);
+
+        return elScript;
     },
 
     executeLoad: function (pFSLoaderItem) {
         "use strict";
-        this.lastItem = pFSLoaderItem;
-        this.items.push(pFSLoaderItem);
 
         //assign on start
         var onStartCallback;
@@ -393,7 +359,8 @@ FSLoader.prototype = {
             //LOAD ASSET WITH XHR
             var xhrLevel = 1;
 
-            if (window.ArrayBuffer) {
+            //if XHR2 is supported
+            if (FSLoaderHelpers.isXHR2Supported()) {
                 xhrLevel = 2;
             }
 
@@ -417,7 +384,7 @@ FSLoader.prototype = {
             this.currentRequest.open('GET', this.evaluateURL(pFSLoaderItem.path,pFSLoaderItem.preventCache), true);
             this.currentRequest.send();
 
-            if (this.isBinary(pFSLoaderItem.type)) {
+            if (FSLoaderHelpers.isBinary(pFSLoaderItem.type)) {
                 this.currentRequest.responseType = 'arraybuffer';
             }
 

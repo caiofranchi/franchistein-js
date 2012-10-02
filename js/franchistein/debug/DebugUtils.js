@@ -11,7 +11,7 @@ function log( text ) {
     logDiv.innerHTML = text;
 }
 
-function inspect( obj ) {
+function dump(obj) {
     if (typeof obj === "undefined") {
         return "undefined";
     }
