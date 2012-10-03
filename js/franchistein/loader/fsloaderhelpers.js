@@ -19,6 +19,7 @@ window.FSLoaderHelpers = {
     //LOADING TYPES
     LOAD_AS_TAGS : "tag",
     LOAD_AS_XHR : "xhr",
+    LOAD_AS_XHR2 : "xhr2",
     DEFAULT_LOAD_TYPE : "tag",
 
     //LOADER TYPES (read-only)
@@ -30,6 +31,9 @@ window.FSLoaderHelpers = {
     TYPE_XML : "xml",
     TYPE_SVG : "svg",
     TYPE_TEXT : "text",
+
+    FILE_TYPE_TEXT : "text",
+    FILE_TYPE_BINARY : "binary",
 
     //LOADING STATES (read-only)
     STATE_UNLOADED : "unloaded",

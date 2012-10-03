@@ -28,7 +28,7 @@ function onQueueProgress () {
     document.getElementById("porc").innerHTML = this.progress;
 }
 
-function onStartManolo() {
+function onStartManolo () {
     //console.log("START");
     //console.log(this);
 }

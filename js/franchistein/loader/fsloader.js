@@ -40,58 +40,6 @@
 /*jslint browser: true*/
 /*global document,console,StringUtils*/
 
-window.FSLoaderItem = function (pRef, pStrPath, pObjOptions) {
-    "use strict";
-    //setup
-    this.id = "loader-item-" + pRef.items.length; //it the id was not set, generate automatically
-    this.path = pStrPath;
-    this.options = {};
-    this.reference = pRef;
-    this.data = undefined;
-    this.type = undefined;
-    this.retries = 0;
-    this.retriesLeft = 0;
-
-    //preventCache?
-    this.preventCache = false;
-
-    //defined by system
-    this.element = undefined;
-    this.state = FSLoaderHelpers.STATE_UNLOADED;
-    this.queue = undefined;
-    this.data = undefined;
-    this.bytesTotal = 0;
-    this.bytesLoaded = 0;
-    this.progress = 0;
-
-    if (pObjOptions !== undefined) {
-        this.options = pObjOptions;
-        //id
-        if (pObjOptions.id !== undefined) {
-            this.id = pObjOptions.id;
-        }
-        //type of file
-        if (pObjOptions.type === undefined) {
-            this.type = pRef.getFileType(pStrPath);
-        } else {
-            this.type = pObjOptions.type;
-        }
-
-        //prevent cache
-        if (pObjOptions.preventCache !== undefined) {
-            this.preventCache = pObjOptions.preventCache;
-        }
-
-        //retries?
-        if (pObjOptions.retries !== undefined) {
-            this.retries = this.retriesLeft = pObjOptions.retries;
-        }
-    } else {
-        //type of file
-        this.type = pRef.getFileType(pStrPath);
-    }
-};
-
 //TODO: Transform class into MODULE pattern
 /**
 
@@ -102,7 +50,7 @@ window.FSLoaderItem = function (pRef, pStrPath, pObjOptions) {
  @class FSLoader
 
  */
-window.FSLoader = function (pLoadingType, pObjDefaultOptions) { //pObjOptions = {container,onstart,onerror,oncomplete,type:swf|img|js|css,preventCache:true|false,onstartparams}
+window.FSLoader = function (pObjDefaultOptions) { //pObjOptions = {container,onstart,onerror,oncomplete,type:swf|img|js|css,preventCache:true|false,onstartparams}
     "use strict";
     // VARS
     this.currentLoading = false;
@@ -113,7 +61,7 @@ window.FSLoader = function (pLoadingType, pObjDefaultOptions) { //pObjOptions = 
     //SET DEFAULTS
 
     //set loading type
-    this.loadingType = pLoadingType;
+    /*this.loadingType = pLoadingType;
     if (pLoadingType === undefined) {
         this.loadingType = FSLoaderHelpers.DEFAULT_LOAD_TYPE;
     }
@@ -123,7 +71,8 @@ window.FSLoader = function (pLoadingType, pObjDefaultOptions) { //pObjOptions = 
             //if xhr is available
             this.loadingType = FSLoaderHelpers.LOAD_AS_TAGS;
         }
-    }
+    }*/
+    this.loadingType = FSLoaderHelpers.DEFAULT_LOAD_TYPE;
 
     if (pObjDefaultOptions !== undefined) this.options = pObjDefaultOptions;
 
@@ -138,7 +87,7 @@ window.FSLoader = function (pLoadingType, pObjDefaultOptions) { //pObjOptions = 
     };
 };
 
-FSLoader.prototype = {
+window.FSLoader.prototype = {
 
     //PUBLIC METHODS
     loadFSModule: function (pStrID) {
@@ -172,22 +121,6 @@ FSLoader.prototype = {
         return this.items[this.items.indexByObjectValue(pAttribute, pValue)];
     },
 
-    generateTagByType: function (pStrType, pStrPath) {
-        "use strict";
-        switch (pStrType) {
-        case FSLoaderHelpers.TYPE_CSS:
-            return this.createCssTag(pStrPath);
-        case FSLoaderHelpers.TYPE_JAVASCRIPT:
-            return this.createJavascriptTag(pStrPath);
-        case FSLoaderHelpers.TYPE_IMAGE:
-            return this.createImageTag(pStrPath);
-        case FSLoaderHelpers.TYPE_SVG:
-            return this.createSVGTag(pStrPath);
-        case FSLoaderHelpers.TYPE_SOUND:
-            return this.createSoundTag(pStrPath);
-        };
-    },
-
     //PRIVATE METHODS
 
     evaluateURL: function (pStrURL, pPreventCache) {
@@ -203,6 +136,26 @@ FSLoader.prototype = {
         } else {
             return pStrURL;
         }
+    },
+
+    identifyLoadingType: function () {
+
+    },
+
+    generateTagByType: function (pStrType, pStrPath) {
+        "use strict";
+        switch (pStrType) {
+            case FSLoaderHelpers.TYPE_CSS:
+                return this.createCssTag(pStrPath);
+            case FSLoaderHelpers.TYPE_JAVASCRIPT:
+                return this.createJavascriptTag(pStrPath);
+            case FSLoaderHelpers.TYPE_IMAGE:
+                return this.createImageTag(pStrPath);
+            case FSLoaderHelpers.TYPE_SVG:
+                return this.createSVGTag(pStrPath);
+            case FSLoaderHelpers.TYPE_SOUND:
+                return this.createSoundTag(pStrPath);
+        };
     },
 
     //returns the file type for loading, based on file extension and recognized file types for loading
@@ -355,7 +308,7 @@ FSLoader.prototype = {
                 throw new Error("Cannot appendChild script on the given container element.");
             };
 
-        } else if (pFSLoaderItem.reference.loadingType === FSLoaderHelpers.LOAD_AS_XHR) {
+        } else if (pFSLoaderItem.reference.loadingType === FSLoaderHelpers.LOAD_AS_XHR2) {
             //LOAD ASSET WITH XHR
             var xhrLevel = 1;
 
@@ -432,7 +385,7 @@ FSLoader.prototype = {
 
         if (this.reference.loadingType === FSLoaderHelpers.LOAD_AS_TAGS) {
             this.data = this.element;
-        }else if (this.reference.loadingType === FSLoaderHelpers.LOAD_AS_XHR) {
+        }else if (this.reference.loadingType === FSLoaderHelpers.LOAD_AS_XHR2) {
             //this.data =
             this.element = event.currentTarget;
         }
