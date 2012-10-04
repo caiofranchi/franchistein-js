@@ -13,8 +13,11 @@ window.FSLoaderItem = function (pRef, pStrPath, pObjOptions) {
     this.reference = pRef;
     this.data = undefined;
     this.type = undefined;
+    this.params = {};
+    this.method = FSLoaderHelpers.METHOD_GET;
     this.retries = 0;
     this.retriesLeft = 0;
+    this.loadingType = undefined;
 
     //preventCache?
     this.preventCache = false;
@@ -39,6 +42,11 @@ window.FSLoaderItem = function (pRef, pStrPath, pObjOptions) {
             this.type = pRef.getFileType(pStrPath);
         } else {
             this.type = pObjOptions.type;
+        }
+
+        //method for loading
+        if (pObjOptions.method !== undefined) {
+            this.method = pObjOptions.method;
         }
 
         //prevent cache

@@ -22,6 +22,10 @@ window.FSLoaderHelpers = {
     LOAD_AS_XHR2 : "xhr2",
     DEFAULT_LOAD_TYPE : "tag",
 
+    //LOAD METHODS
+    METHOD_GET : "GET",
+    METHOD_POST : "POST",
+
     //LOADER TYPES (read-only)
     TYPE_JAVASCRIPT : "script",
     TYPE_CSS : "css",
@@ -45,7 +49,7 @@ window.FSLoaderHelpers = {
     //OPTIONS
     REGISTERED_LOADER_OPTIONS : ["id", "preventCache", "container"],
     REGISTERED_QUEUE_OPTIONS : ["id", "preventCache", "container", "ignoreErrors", "onitemerror", "onitemerrorparams", "onitemcomplete", "onitemcompleteparams", "onitemstart", "onitemstartparams", "onqueueerror", "onqueueerrorparams", "onqueuecomplete", "onqueuecompleteparams", "onqueueprogress", "onqueueprogressparams"],
-    REGISTERED_ITEM_OPTIONS : ["id", "preventCache", "type", "onstart", "onstartparams", "onerror", "onerrorparams", "oncomplete", "oncompleteparams"],
+    REGISTERED_ITEM_OPTIONS : ["id", "preventCache", "method", "type", "onstart", "onstartparams", "onerror", "onerrorparams", "oncomplete", "oncompleteparams"],
     MERGE_OPTIONS : ["preventCache"],
 
     //Registered internal modules
@@ -103,6 +107,28 @@ window.FSLoaderHelpers = {
         switch (pStrType) {
             case FSLoaderHelpers.TYPE_IMAGE:
             case FSLoaderHelpers.TYPE_SOUND:
+                return true;
+            default:
+                return false;
+        };
+    },
+
+    /**
+
+     @method isBinary
+     @description Verify by the file type if its binary or not
+
+     @param {String} pStrType The file type
+
+     @returns {Boolean} returns true if binary and false if not
+
+     */
+    isData: function(pStrType) {
+        "use strict";
+        switch (pStrType) {
+            case FSLoaderHelpers.TYPE_JSON:
+            case FSLoaderHelpers.TYPE_TEXT:
+            case FSLoaderHelpers.TYPE_XML:
                 return true;
             default:
                 return false;

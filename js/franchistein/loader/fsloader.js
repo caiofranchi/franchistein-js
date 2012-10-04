@@ -61,20 +61,11 @@ window.FSLoader = function (pObjDefaultOptions) { //pObjOptions = {container,ons
     //SET DEFAULTS
 
     //set loading type
-    /*this.loadingType = pLoadingType;
-    if (pLoadingType === undefined) {
-        this.loadingType = FSLoaderHelpers.DEFAULT_LOAD_TYPE;
-    }
-    if (this.loadingType === FSLoaderHelpers.LOAD_AS_XHR) {
-        //verify if the browser has capabilities
-        if (window.XMLHttpRequest === null) {
-            //if xhr is available
-            this.loadingType = FSLoaderHelpers.LOAD_AS_TAGS;
-        }
-    }*/
-    this.loadingType = FSLoaderHelpers.DEFAULT_LOAD_TYPE;
+    //this.loadingType = FSLoaderHelpers.LOAD_AS_TAGS;
 
-    if (pObjDefaultOptions !== undefined) this.options = pObjDefaultOptions;
+    if (pObjDefaultOptions !== undefined) {
+        this.options = pObjDefaultOptions;
+    }
 
     // set the default container
     if (this.options !== undefined && this.options["container"] !== undefined) {
@@ -102,6 +93,7 @@ window.FSLoader.prototype = {
 
         //create a FS Loader for the request
         var currentItem = this.generateLoaderItem(pStrPath, pObjOptions);
+
         this.items.push(currentItem);
 
         if (pAutoLoad === undefined || pAutoLoad === true) {
@@ -138,8 +130,25 @@ window.FSLoader.prototype = {
         }
     },
 
-    identifyLoadingType: function () {
-
+    identifyLoadingType: function (pStrType) {
+        //if the file is a binary
+        if (FSLoaderHelpers.isBinary(pStrType) === true) {
+            if (FSLoaderHelpers.isXHR2Supported()) {
+                //verify if its possible to load as XHR2 and return the BLOB
+                return FSLoaderHelpers.LOAD_AS_XHR2;
+            } else {
+                //if its not possible, load as tag
+                return FSLoaderHelpers.LOAD_AS_TAGS;
+            }
+        } else {
+            //if it text content
+            if (FSLoaderHelpers.isData()) {
+                return FSLoaderHelpers.LOAD_AS_XHR;
+            } else {
+                //if its TAG (js, css, svg)
+                return FSLoaderHelpers.LOAD_AS_TAGS;
+            }
+        }
     },
 
     generateTagByType: function (pStrType, pStrPath) {
@@ -245,6 +254,9 @@ window.FSLoader.prototype = {
     executeLoad: function (pFSLoaderItem) {
         "use strict";
 
+        //refresh FSLoaderItem
+        pFSLoaderItem.state = pFSLoaderItem.STATE_STARTED;
+
         //assign on start
         var onStartCallback;
         if (pFSLoaderItem.options["onstart"] !== undefined) {
@@ -260,28 +272,23 @@ window.FSLoader.prototype = {
             }
         };
 
+        //loading
+        pFSLoaderItem.state = pFSLoaderItem.STATE_LOADING;
+
 
         //if the item belongs to a queue, exec the callback
         if (pFSLoaderItem.queue !== undefined) {
             pFSLoaderItem.queue.onQueueItemStart(this);
         };
 
+
         //LOAD ASSET AS TAG
-        if (pFSLoaderItem.reference.loadingType === FSLoaderHelpers.LOAD_AS_TAGS) {
-
-
-
-            //refresh FSLoaderItemElement
-            pFSLoaderItem.state = pFSLoaderItem.STATE_STARTED;
+        if (pFSLoaderItem.loadingType === FSLoaderHelpers.LOAD_AS_TAGS) {
 
             //load as tags
             var elScript = this.generateTagByType(pFSLoaderItem.type, this.evaluateURL(pFSLoaderItem.path, pFSLoaderItem.preventCache));
 
             pFSLoaderItem.element = elScript;
-
-
-            //loading
-            pFSLoaderItem.state = pFSLoaderItem.STATE_LOADING;
 
             //setup event
             elScript.addEventListener("load", this.onItemLoadComplete.bind(pFSLoaderItem), false);
@@ -301,14 +308,14 @@ window.FSLoader.prototype = {
             try {
                 if (pFSLoaderItem.options.container === undefined) {
                     this.containerElement.appendChild(elScript);
-                }else{
+                } else{
                     pFSLoaderItem.options.container.appendChild(elScript);
                 }
             } catch (e) {
                 throw new Error("Cannot appendChild script on the given container element.");
             };
 
-        } else if (pFSLoaderItem.reference.loadingType === FSLoaderHelpers.LOAD_AS_XHR2) {
+        } else if (pFSLoaderItem.loadingType === FSLoaderHelpers.LOAD_AS_XHR || pFSLoaderItem.loadingType === FSLoaderHelpers.LOAD_AS_XHR2) {
             //LOAD ASSET WITH XHR
             var xhrLevel = 1;
 
@@ -316,14 +323,14 @@ window.FSLoader.prototype = {
             if (FSLoaderHelpers.isXHR2Supported()) {
                 xhrLevel = 2;
             }
-
+            //console.log(pFSLoaderItem);
             // Old IE versions use a different approach
             if (window.XMLHttpRequest) {
                 this.currentRequest = new XMLHttpRequest();
             } else {
                 try {
                     this.currentRequest = new ActiveXObject("MSXML2.XMLHTTP.3.0");
-                } catch(ex) {
+                } catch (ex) {
                     return null;
                 }
             }
@@ -334,7 +341,7 @@ window.FSLoader.prototype = {
             }
 
             //load the XHR
-            this.currentRequest.open('GET', this.evaluateURL(pFSLoaderItem.path,pFSLoaderItem.preventCache), true);
+            this.currentRequest.open(pFSLoaderItem.method, this.evaluateURL(pFSLoaderItem.path, pFSLoaderItem.preventCache), true);
             this.currentRequest.send();
 
             if (FSLoaderHelpers.isBinary(pFSLoaderItem.type)) {
@@ -359,6 +366,7 @@ window.FSLoader.prototype = {
     generateLoaderItem: function (pStrPath, pObjOptions) {
         "use strict";
         var objLoaderItem = new FSLoaderItem(this, pStrPath, pObjOptions);
+        objLoaderItem.loadingType = this.identifyLoadingType(objLoaderItem.type);
         return objLoaderItem;
     },
 

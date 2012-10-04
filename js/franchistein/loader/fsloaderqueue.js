@@ -8,10 +8,10 @@
 /*
  * Object for controlling a queue of loadable items
  * */
-window.FSLoaderQueue = function (pLoadingType, pObjDefaultOptions) {
+window.FSLoaderQueue = function (pObjDefaultOptions) {
     "use strict";
 
-    this.reference = new window.FSLoader(pLoadingType, pObjDefaultOptions);
+    this.reference = new window.FSLoader(pObjDefaultOptions);
 
     this.items = [ ];
     this.currentIndex = 0;
