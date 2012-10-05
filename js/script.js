@@ -5,9 +5,16 @@ var MainLoader = new FSLoader();
 //MainLoader.load("http://caiofranchi.com.br/clientes/silika/pernambucanas/img/logo.png",{id:"LOGO",onstart:onStartManolo,onstartparams:["piru","piruDouble"],onerror:onErrorManolo,oncomplete:onCompleteManolo}); //container:document.getElementsByTagName("head")[0],
 MainLoader.load("js/libs/jquery-1.8.0.min.js",{retries:1,id:"jQueryLocal",onstart:onStartManolo,onstartparams:["piru","piruDouble"],onerror:onErrorManolo,oncomplete:onCompleteManolo}); //container:document.getElementsByTagName("head")[0],
 MainLoader.load("img/logo.png",{id:"LOGO-LOCAL",onstart:onStartManolo,onstartparams:["piru","piruDouble"],onerror:onErrorManolo,oncomplete:onCompleteManolo}); //container:document.getElementsByTagName("head")[0],
-console.log(MainLoader.get("LOGO-LOCAL"));
+MainLoader.load("proxy.php",{id:"xmlMano",type:FSLoaderHelpers.TYPE_XML, oncomplete:onCompleteLoadingXML});
+
+//console.log(MainLoader.get("LOGO-LOCAL"));
 
 //console.log("XHR2 Supported:"+FSLoaderHelpers.isXHR2Supported());
+
+function onCompleteLoadingXML() {
+    console.log("XML:");
+    console.log(this);
+}
 
 function onCompletejQuery () {
     console.log("Complete external jQuery");

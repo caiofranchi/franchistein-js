@@ -142,7 +142,7 @@ window.FSLoader.prototype = {
             }
         } else {
             //if it text content
-            if (FSLoaderHelpers.isData()) {
+            if (FSLoaderHelpers.isData(pStrType)) {
                 return FSLoaderHelpers.LOAD_AS_XHR;
             } else {
                 //if its TAG (js, css, svg)
