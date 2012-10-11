@@ -13,7 +13,7 @@ MainLoader.load("proxy.php",{id:"xmlMano",type:FSLoaderHelpers.TYPE_XML, oncompl
 
 function onCompleteLoadingXML() {
     console.log("XML:");
-    console.log(this);
+    //console.log(this.data);
 }
 
 function onCompletejQuery () {
@@ -25,8 +25,8 @@ function onCompleteItem ()  {
 }
 
 function onCompleteManolo () {
-    console.log("COMPLETE QUEUE");
-    //console.log(this);
+    console.log("COMPLETE MANOLOS");
+    console.log(this.data);
     //document.getElementById("main-content").appendChild(this.element);
 }
 
@@ -51,8 +51,12 @@ function onErrorQueue () {
    //console.log(this);
 }
 
+function onCompleteQueue () {
+    console.log("COMPLETE QUEU");
+}
+
 /*
-var queue  = new FSLoaderQueue({ignoreErrors:true, onqueueerror:onErrorQueue, onqueuecomplete:onCompleteManolo, onitemcomplete:onCompleteItem, onqueueprogress:onQueueProgress});
+var queue  = new FSLoaderQueue({ignoreErrors:true, onqueueerror:onErrorQueue, onqueuecomplete:onCompleteQueue, onitemcomplete:onCompleteItem, onqueueprogress:onQueueProgress});
 queue.add("img/logo.png");
 queue.add("//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js", {id:"jquery-external",oncomplete:onCompletejQuery});
 queue.add("js/libs/jquery-1.8.0.min.js");

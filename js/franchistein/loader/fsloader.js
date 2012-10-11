@@ -386,19 +386,26 @@ window.FSLoader.prototype = {
         this.state = FSLoaderHelpers.STATE_FINISHED;
         this.progress = 100;
 
+        if (this.reference.loadingType === FSLoaderHelpers.LOAD_AS_XHR2 || this.reference.loadingType === FSLoaderHelpers.LOAD_AS_XHR) {
+            //this.data =
+            this.element = event.currentTarget;
+        }
+
+        //assign return data by type
+        if (this.loadingType === FSLoaderHelpers.LOAD_AS_TAGS) {
+            this.data = this.element;
+        } else if (this.loadingType === FSLoaderHelpers.LOAD_AS_XHR) {
+            this.data = event.currentTarget.response;
+        } else if (this.loadingType === FSLoaderHelpers.LOAD_AS_XHR2) {
+            this.data = event.currentTarget.response;
+        }
+
+
         //if the item belongs to a queue, exec the callback
         if (this.queue !== undefined) {
             this.queue.onQueueItemComplete(this);
         };
 
-        if (this.reference.loadingType === FSLoaderHelpers.LOAD_AS_TAGS) {
-            this.data = this.element;
-        }else if (this.reference.loadingType === FSLoaderHelpers.LOAD_AS_XHR2) {
-            //this.data =
-            this.element = event.currentTarget;
-        }
-
-        //this.data = this.element.nodeValue;
         if (this.options.oncomplete !== undefined) {
             if (this.options.oncompleteparams !== undefined) {
                 this.options.oncomplete.apply(this, this.options.oncompleteparams);
