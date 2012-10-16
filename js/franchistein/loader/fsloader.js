@@ -60,9 +60,6 @@ window.FSLoader = function (pObjDefaultOptions) { //pObjOptions = {container,ons
 
     //SET DEFAULTS
 
-    //set loading type
-    //this.loadingType = FSLoaderHelpers.LOAD_AS_TAGS;
-
     if (pObjDefaultOptions !== undefined) {
         this.options = pObjDefaultOptions;
     }
@@ -131,11 +128,13 @@ window.FSLoader.prototype = {
     },
 
     identifyLoadingType: function (pStrType) {
+        "use strict";
         //if the file is a binary
         if (FSLoaderHelpers.isBinary(pStrType) === true) {
             if (FSLoaderHelpers.isXHR2Supported()) {
                 //verify if its possible to load as XHR2 and return the BLOB
-                return FSLoaderHelpers.LOAD_AS_XHR2;
+                //return FSLoaderHelpers.LOAD_AS_XHR2;
+                return FSLoaderHelpers.LOAD_AS_TAGS;
             } else {
                 //if its not possible, load as tag
                 return FSLoaderHelpers.LOAD_AS_TAGS;
@@ -344,7 +343,7 @@ window.FSLoader.prototype = {
             this.currentRequest.open(pFSLoaderItem.method, this.evaluateURL(pFSLoaderItem.path, pFSLoaderItem.preventCache), true);
             this.currentRequest.send();
 
-            if (FSLoaderHelpers.isBinary(pFSLoaderItem.type)) {
+            if (FSLoaderHelpers.isBinary(pFSLoaderItem.type) && xhrLevel === 2) {
                 this.currentRequest.responseType = 'arraybuffer';
             }
 
@@ -366,7 +365,19 @@ window.FSLoader.prototype = {
     generateLoaderItem: function (pStrPath, pObjOptions) {
         "use strict";
         var objLoaderItem = new FSLoaderItem(this, pStrPath, pObjOptions);
-        objLoaderItem.loadingType = this.identifyLoadingType(objLoaderItem.type);
+
+        //assign loading type
+        if (pObjOptions !== undefined) {
+            if (pObjOptions.loadingType !== undefined) {
+                objLoaderItem.loadingType = pObjOptions.loadingType;
+            } else {
+                objLoaderItem.loadingType = this.identifyLoadingType(objLoaderItem.type);
+            }
+        } else {
+            objLoaderItem.loadingType = this.identifyLoadingType(objLoaderItem.type);
+        }
+
+
         return objLoaderItem;
     },
 
