@@ -319,7 +319,7 @@ window.FSLoader.prototype = {
             var xhrLevel = 1;
 
             //if XHR2 is supported
-            if (FSLoaderHelpers.isXHR2Supported()) {
+            if (FSLoaderHelpers.isXHR2Supported() && pFSLoaderItem.loadingType === FSLoaderHelpers.LOAD_AS_XHR2) {
                 xhrLevel = 2;
             }
             //console.log(pFSLoaderItem);
