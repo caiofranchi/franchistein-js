@@ -314,14 +314,8 @@ window.FSLoader.prototype = {
                 throw new Error("Cannot appendChild script on the given container element.");
             };
 
-        } else if (pFSLoaderItem.loadingType === FSLoaderHelpers.LOAD_AS_XHR || pFSLoaderItem.loadingType === FSLoaderHelpers.LOAD_AS_XHR2) {
-            //LOAD ASSET WITH XHR
-            var xhrLevel = 1;
+        } else if (pFSLoaderItem.loadingType === FSLoaderHelpers.LOAD_AS_XHR || (pFSLoaderItem.loadingType === FSLoaderHelpers.LOAD_AS_BLOB || pFSLoaderItem.loadingType === FSLoaderHelpers.LOAD_AS_ARRAY_BUFFER)) {
 
-            //if XHR2 is supported
-            if (FSLoaderHelpers.isXHR2Supported() && pFSLoaderItem.loadingType === FSLoaderHelpers.LOAD_AS_XHR2) {
-                xhrLevel = 2;
-            }
             //console.log(pFSLoaderItem);
             // Old IE versions use a different approach
             if (window.XMLHttpRequest) {
@@ -335,7 +329,7 @@ window.FSLoader.prototype = {
             }
 
             //IE9 doesn't support .overrideMimeType(), so we need to check for it.
-            if (pFSLoaderItem.type === FSLoaderHelpers.TYPE_TEXT) { // && this._request.overrideMimeType
+            if (pFSLoaderItem.type === FSLoaderHelpers.TYPE_TEXT) {
                 currentRequest.overrideMimeType('text/plain; charset=x-user-defined');
             }
 
@@ -343,8 +337,15 @@ window.FSLoader.prototype = {
             this.currentRequest.open(pFSLoaderItem.method, this.evaluateURL(pFSLoaderItem.path, pFSLoaderItem.preventCache), true);
             this.currentRequest.send();
 
-            if (FSLoaderHelpers.isBinary(pFSLoaderItem.type) && xhrLevel === 2) {
-                this.currentRequest.responseType = 'arraybuffer';
+            //if xhr2 is supported and the file is binary
+            if (FSLoaderHelpers.isBinary(pFSLoaderItem.type) && FSLoaderHelpers.isXHR2Supported()) {
+                if (pFSLoaderItem.loadingType === FSLoaderHelpers.LOAD_AS_BLOB) {
+                    //if is Blob
+                    this.currentRequest.responseType = 'blob';
+                } else if (pFSLoaderItem.loadingType === FSLoaderHelpers.LOAD_AS_ARRAY_BUFFER) {
+                    //If is a array buffer
+                    this.currentRequest.responseType = 'arraybuffer';
+                }
             }
 
             /*this.currentRequest.onload = this.onItemLoadComplete.bind(pFSLoaderItem);
@@ -397,7 +398,7 @@ window.FSLoader.prototype = {
         this.state = FSLoaderHelpers.STATE_FINISHED;
         this.progress = 100;
 
-        if (this.reference.loadingType === FSLoaderHelpers.LOAD_AS_XHR2 || this.reference.loadingType === FSLoaderHelpers.LOAD_AS_XHR) {
+        if (this.reference.loadingType === FSLoaderHelpers.LOAD_AS_BLOB || this.reference.loadingType === FSLoaderHelpers.LOAD_AS_XHR) {
             //this.data =
             this.element = event.currentTarget;
         }
@@ -407,10 +408,9 @@ window.FSLoader.prototype = {
             this.data = this.element;
         } else if (this.loadingType === FSLoaderHelpers.LOAD_AS_XHR) {
             this.data = event.currentTarget.response;
-        } else if (this.loadingType === FSLoaderHelpers.LOAD_AS_XHR2) {
+        } else if (this.loadingType === FSLoaderHelpers.LOAD_AS_BLOB || this.loadingType === FSLoaderHelpers.LOAD_AS_ARRAY_BUFFER) {
             this.data = event.currentTarget.response;
         }
-
 
         //if the item belongs to a queue, exec the callback
         if (this.queue !== undefined) {

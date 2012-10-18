@@ -1,14 +1,12 @@
 //FS.callMe("a","c","d");
-
 var MainLoader = new FSLoader();
 //MainLoader.load("//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js",{id:"jQuery",onstart:onStartManolo,onstartparams:["piru","piruDouble"],onerror:onErrorManolo,oncomplete:onCompleteManolo}); //container:document.getElementsByTagName("head")[0],
 //MainLoader.load("http://caiofranchi.com.br/clientes/silika/pernambucanas/img/logo.png",{id:"LOGO",onstart:onStartManolo,onstartparams:["piru","piruDouble"],onerror:onErrorManolo,oncomplete:onCompleteManolo}); //container:document.getElementsByTagName("head")[0],
 MainLoader.load("js/libs/jquery-1.8.0.min.js",{retries:1,id:"jQueryLocal",onstart:onStartManolo,onstartparams:["piru","piruDouble"],onerror:onErrorManolo,oncomplete:onCompleteManolo}); //container:document.getElementsByTagName("head")[0],
-MainLoader.load("img/logo.png",{id:"LOGO-LOCAL",onstart:onStartManolo,onstartparams:["piru","piruDouble"],onerror:onErrorManolo,oncomplete:onCompleteManolo}); //container:document.getElementsByTagName("head")[0],
+MainLoader.load("img/logo.png",{id:"LOGO-LOCAL",loadingType:FSLoaderHelpers.LOAD_AS_BLOB,onstart:onStartManolo,onstartparams:["piru","piruDouble"],onerror:onErrorManolo,oncomplete:onCompleteManoloImagetico}); //container:document.getElementsByTagName("head")[0],
 MainLoader.load("proxy.php",{id:"xmlMano",type:FSLoaderHelpers.TYPE_XML, oncomplete:onCompleteLoadingXML});
 
 //console.log(MainLoader.get("LOGO-LOCAL"));
-
 //console.log("XHR2 Supported:"+FSLoaderHelpers.isXHR2Supported());
 
 function onCompleteLoadingXML() {
@@ -26,6 +24,13 @@ function onCompleteItem ()  {
 
 function onCompleteManolo () {
     console.log("COMPLETE MANOLOS");
+    console.log(this.data);
+    //document.getElementById("main-content").appendChild(this.element);
+}
+
+function onCompleteManoloImagetico () {
+    console.log("COMPLETE IMAGEM");
+    console.log(this.element);
     console.log(this.data);
     //document.getElementById("main-content").appendChild(this.element);
 }

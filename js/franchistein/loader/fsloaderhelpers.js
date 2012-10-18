@@ -14,12 +14,14 @@
  @class FSLoaderHelpers
 
  */
+window.URL = window.URL || window.webkitURL;
 window.FSLoaderHelpers = {
 
     //LOADING TYPES
     LOAD_AS_TAGS : "tag",
     LOAD_AS_XHR : "xhr",
-    LOAD_AS_XHR2 : "xhr2",
+    LOAD_AS_BLOB : "blob",
+    LOAD_AS_ARRAY_BUFFER : "arraybuffer",
     DEFAULT_LOAD_TYPE : "tag",
 
     //LOAD METHODS
@@ -135,6 +137,11 @@ window.FSLoaderHelpers = {
         };
     },
 
+    getURLByBlob: function (pObjBlob) {
+        "use strict";
+        return window.URL.createObjectURL(pObjBlob);
+    },
+
     /**
 
      @method isBinary
@@ -152,7 +159,7 @@ window.FSLoaderHelpers = {
                 // Web worker
                 typeof window.postMessage !== "undefined" ||
                     // window
-                    (typeof window.FormData !== "undefined" && typeof window.File !== "undefined")
+                    (typeof window.FormData !== "undefined" && typeof window.File !== "undefined" && typeof window.Blob !== "undefined")
                 )
 
             );
