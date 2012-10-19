@@ -67,3 +67,7 @@ queue.add("//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js", {id:"jqu
 queue.add("js/libs/jquery-1.8.0.min.js");
 queue.add("http://caiofranchi.com.br/clientes/silika/pernambucanas/img/logo.png");
 queue.start();*/
+
+
+teste = new FSPreloader();
+teste.parse();

@@ -7,7 +7,10 @@
 
 //Inherits
 window.FSPreloader = function (pObjDefaultOptions) {
-     this.container = document;
+    this.container = document;
+    this.stylesheets = undefined;
+    this.images = undefined;
+    this.elements = undefined;
 }
 
 if (window.FSLoaderQueue !== undefined) {
@@ -19,19 +22,29 @@ if (window.FSLoaderQueue !== undefined) {
 }
 
 FSPreloader.prototype.parse = function (pObjOptions) { //containers: document.body , document.head, css:true|false, images:true|false
-    //IMGS
-    //document.getElementsByTagName("img");
 
+    //IMGS
+    var imageList = document.getElementsByTagName("img");
+    //console.log(imageList[0].dataset["preload"]);
      //CSS
-     if (document.styleSheets) {
+    //console.log(document.styleSheets);
+    console.log(document.querySelectorAll('[data-preload="true"]'));
+    if (document.styleSheets) {
+
+        this.stylesheets = document.styleSheets;
+
+        //passing trough stylesheets
+
         //DOM stylesheets are available
-         var list = null;
-         with (document.styleSheets[0]) {
-             if (typeof cssRules !== "undefined")
-                 list = cssRules;
-             else if (typeof rules !== "undefined")
-                 list = rules;
-         }
-         console.log(list);​
-     }
-};
+        var list = null;
+
+        if (typeof document.styleSheets[0].cssRules !== "undefined") {
+            list = document.styleSheets[0].cssRules;
+        } else if (typeof document.styleSheets[0].rules !== "undefined") {
+            list = document.styleSheets[0].rules;
+        }
+
+        console.log(list);
+        console.log(list.length);
+    }
+}
