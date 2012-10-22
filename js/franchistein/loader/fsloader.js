@@ -397,7 +397,6 @@ window.FSLoader.prototype = {
         "use strict";
         this.state = FSLoaderHelpers.STATE_FINISHED;
         this.progress = 100;
-
         if (this.reference.loadingType === FSLoaderHelpers.LOAD_AS_BLOB || this.reference.loadingType === FSLoaderHelpers.LOAD_AS_XHR) {
             //this.data =
             this.element = event.currentTarget;

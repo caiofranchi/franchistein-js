@@ -1,4 +1,6 @@
-//FS.callMe("a","c","d");
+
+/*
+ //FS LOADER
 var MainLoader = new FSLoader();
 //MainLoader.load("//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js",{id:"jQuery",onstart:onStartManolo,onstartparams:["piru","piruDouble"],onerror:onErrorManolo,oncomplete:onCompleteManolo}); //container:document.getElementsByTagName("head")[0],
 //MainLoader.load("http://caiofranchi.com.br/clientes/silika/pernambucanas/img/logo.png",{id:"LOGO",onstart:onStartManolo,onstartparams:["piru","piruDouble"],onerror:onErrorManolo,oncomplete:onCompleteManolo}); //container:document.getElementsByTagName("head")[0],
@@ -59,8 +61,9 @@ function onErrorQueue () {
 function onCompleteQueue () {
     console.log("COMPLETE QUEU");
 }
+*/
 
-/*
+/* //FS QUEUE
 var queue  = new FSLoaderQueue({ignoreErrors:true, onqueueerror:onErrorQueue, onqueuecomplete:onCompleteQueue, onitemcomplete:onCompleteItem, onqueueprogress:onQueueProgress});
 queue.add("img/logo.png");
 queue.add("//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js", {id:"jquery-external",oncomplete:onCompletejQuery});
@@ -69,5 +72,18 @@ queue.add("http://caiofranchi.com.br/clientes/silika/pernambucanas/img/logo.png"
 queue.start();*/
 
 
-teste = new FSPreloader();
-teste.parse();
+//FS PRELOADER
+teste = new FSPreloader({onqueuecomplete: onCompleteQueue, onqueueprogress: onQueueProgress, ignoreErrors: true});
+teste.parseDocument({css: true});
+teste.add("img/logo.png");
+teste.start();
+
+function onQueueProgress () {
+    console.log(teste.progress);
+}
+
+function onCompleteQueue () {
+    console.log("COMPLETE O PRELOADING");
+    //console.log(teste.getElementByAttribute("path","img/logo.png"));
+}
+

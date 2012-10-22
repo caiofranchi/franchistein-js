@@ -8,10 +8,10 @@
 //Inherits
 window.FSPreloader = function (pObjDefaultOptions) {
     this.container = document;
-    this.stylesheets = undefined;
-    this.images = undefined;
     this.elements = undefined;
-}
+
+    FSLoaderQueue.call(this, pObjDefaultOptions);
+};
 
 if (window.FSLoaderQueue !== undefined) {
     FSPreloader.prototype = new window.FSLoaderQueue;
@@ -21,30 +21,61 @@ if (window.FSLoaderQueue !== undefined) {
     throw new Error("FSPreloader needs FSLoaderQueue to work.");
 }
 
-FSPreloader.prototype.parse = function (pObjOptions) { //containers: document.body , document.head, css:true|false, images:true|false
-
-    //IMGS
-    var imageList = document.getElementsByTagName("img");
-    //console.log(imageList[0].dataset["preload"]);
-     //CSS
-    //console.log(document.styleSheets);
-    console.log(document.querySelectorAll('[data-preload="true"]'));
-    if (document.styleSheets) {
-
-        this.stylesheets = document.styleSheets;
-
-        //passing trough stylesheets
+FSPreloader.prototype.parseCss = function (pCssElements) {
+    if (pCssElements !== undefined) {
 
         //DOM stylesheets are available
-        var list = null;
+        var list = [],
+            foundedPaths = [],
+            totalStylesheets = pCssElements.length,
+            i;
 
-        if (typeof document.styleSheets[0].cssRules !== "undefined") {
-            list = document.styleSheets[0].cssRules;
-        } else if (typeof document.styleSheets[0].rules !== "undefined") {
-            list = document.styleSheets[0].rules;
+        //parse stylesheets to search for images and other loadable items
+        for (i = 0; i < totalStylesheets; i++) {
+            if (typeof pCssElements[i].cssRules !== "undefined") {
+                list = pCssElements[i].cssRules;
+            } else if (typeof pCssElements[i].rules !== "undefined") {
+                list = pCssElements[i].rules;
+            }
+
+            //add the founded background images
+            this.add(FSLoaderHelpers.findRule(list, "backgroundImage"));
+        }
+    }
+}
+
+FSPreloader.prototype.parseDocument = function (pObjOptions) { //containers: document.body , document.head, css:true|false
+
+    console.log("STARTANDO O PRELOADING");
+    //IMGS
+    //var imageList = document.getElementsByTagName("img");
+
+    //CSS
+    this.elements = document.querySelectorAll('[data-preload="true"]');
+    var total = this.elements.length;
+    var cssElements = [],
+        currentEl,
+        i;
+
+    //add loadable identified elements
+    for (i = 0; i < total; i++) {
+        currentEl = FSLoaderHelpers.identifyTagType(this.elements[i]);
+
+        if (currentEl.type === FSLoaderHelpers.TYPE_CSS) {
+            cssElements.push(currentEl.tag.sheet);
         }
 
-        console.log(list);
-        console.log(list.length);
+        this.add(currentEl.path);
     }
+
+
+    if (pObjOptions !== undefined) {
+
+        //parse elements inside css
+        if (pObjOptions.css === "true" || pObjOptions.css === true) {
+            this.parseCss(cssElements);
+        }
+
+    }
+
 }

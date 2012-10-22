@@ -13,7 +13,6 @@ window.FSLoaderQueue = function (pObjDefaultOptions) {
 
     this.reference = new window.FSLoader(pObjDefaultOptions);
 
-    this.items = [ ];
     this.currentIndex = 0;
     this.currentItem = undefined;
     this.ignoreErrors = true;
@@ -24,7 +23,6 @@ window.FSLoaderQueue = function (pObjDefaultOptions) {
     this.totalLoaded = 0;
     this.progress = 0;
     //
-
     this.options = {};
 
     if (pObjDefaultOptions !== undefined) this.options = pObjDefaultOptions;
@@ -38,6 +36,8 @@ window.FSLoaderQueue = function (pObjDefaultOptions) {
             this.ignoreErrors = this.options.ignoreErrors;
         };
     }
+
+    FSLoader.call(this, pObjDefaultOptions);
 };
 
 //Inherits
@@ -49,18 +49,35 @@ if (window.FSLoader !== undefined) {
     throw new Error("FSLoaderQueue needs FSLoader for work.");
 }
 
-FSLoaderQueue.prototype.add = function (pStrPath, pObjOptions) { //onqueueerror,onqueuecomplete,onqueueprogress
+FSLoaderQueue.prototype.add = function (pPaths, pObjOptions) { //onqueueerror,onqueuecomplete,onqueueprogress
     "use strict";
-    var currentItem = this.load(pStrPath, pObjOptions, false);
-    currentItem.queue = this;
-    currentItem.reference = this.reference;
 
-    //this.items.push(currentItem); //already execs on inherited method LOAD
-    this.total = this.items.length;
+    var filteredPath = [],
+        totalPaths,
+        i,
+        currentItem = undefined;
+    if (Object.prototype.toString.call(pPaths) === '[object Array]') {
+        filteredPath = pPaths;
+    } else {
+        filteredPath.push(pPaths);
+    }
+
+    totalPaths = filteredPath.length;
+
+    for (i = 0; i < totalPaths; i++) {
+        currentItem = this.load(filteredPath[i], pObjOptions, false);
+        currentItem.queue = this;
+        currentItem.reference = this.reference;
+
+        //this.items.push(currentItem); //already execs on inherited method LOAD
+        this.total = this.items.length;
+    }
 };
 
 FSLoaderQueue.prototype.start = function () {
     "use strict";
+    if (this.items.length === 0)
+        return;
     if (this.firstStart === true) {
         this.triggerCallbackEvent("onqueuestart");
 

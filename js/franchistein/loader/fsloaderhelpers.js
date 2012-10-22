@@ -115,6 +115,44 @@ window.FSLoaderHelpers = {
         };
     },
 
+    identifyTagType: function(pHTMLElement) {
+        "use strict";
+        switch (pHTMLElement.tagName.toUpperCase()) {
+            case "IMG":
+                return {tag:pHTMLElement, path:pHTMLElement.src, type:FSLoaderHelpers.TYPE_IMAGE};
+                break;
+            case "LINK":
+                return {tag:pHTMLElement, path:pHTMLElement.href, type:FSLoaderHelpers.TYPE_CSS};
+                break;
+            case "SCRIPT":
+                return {tag:pHTMLElement, path:pHTMLElement.src, type:FSLoaderHelpers.TYPE_JAVASCRIPT};
+                break;
+        };
+    },
+
+    findRule: function (pCssRuleList, pRule) {
+        var i,
+            total= pCssRuleList.length,
+            difValue = "initial",
+            strStyle,
+            arrFound = [];
+
+        for (i=0; i < total; i++) {
+
+            if ( pCssRuleList[i].style !== undefined ) {
+                strStyle = pCssRuleList[i].style[pRule];
+                if (strStyle !== difValue && strStyle !== "" && strStyle !== undefined) {
+                    //remove the URL( ) from the item
+                    strStyle = strStyle.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
+                    arrFound.push(strStyle);
+                }
+            }
+
+        }
+
+        return arrFound;
+    },
+
     /**
 
      @method isBinary
@@ -137,6 +175,16 @@ window.FSLoaderHelpers = {
         };
     },
 
+    /**
+
+     @method getURLByBlob
+     @description shortcut method to convert a BLOB into a loadable URL
+
+     @param {String} pObjBlob The Blob
+
+     @returns {Boolean} returns the Blob URL
+
+     */
     getURLByBlob: function (pObjBlob) {
         "use strict";
         return window.URL.createObjectURL(pObjBlob);

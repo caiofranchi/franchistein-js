@@ -561,8 +561,8 @@ jQuery.extend({
 		data = jQuery.trim( data );
 
 		// Attempt to parse using the native JSON parser first
-		if ( window.JSON && window.JSON.parse ) {
-			return window.JSON.parse( data );
+		if ( window.JSON && window.JSON.parseDocument ) {
+			return window.JSON.parseDocument( data );
 		}
 
 		// Make sure the incoming data is actual JSON
