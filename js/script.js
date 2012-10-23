@@ -73,10 +73,23 @@ queue.start();*/
 
 
 //FS PRELOADER
-teste = new FSPreloader({onqueuecomplete: onCompleteQueue, onqueueprogress: onQueueProgress, ignoreErrors: true});
-teste.parseDocument({css: true});
+
+/*document.addEventListener('DOMContentLoaded', function() {
+    console.log("CARREGOU O DOM");
+});*/
+
+teste = new FSPreloader({onqueuestart: onQueueStart, onqueuecomplete: onCompleteQueue, onqueueprogress: onQueueProgress, ignoreErrors: true});
+teste.parseDocument({cssDependencies: true});
+/*
+ console.log("Elementos lidos:");
+ console.log(teste.items);
+ */
 teste.add("img/logo.png");
 teste.start();
+
+function onQueueStart (){
+    console.log("INICIA PRELOADING");
+}
 
 function onQueueProgress () {
     console.log(teste.progress);

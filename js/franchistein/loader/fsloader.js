@@ -31,7 +31,7 @@
 
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL
  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
@@ -78,10 +78,6 @@ window.FSLoader = function (pObjDefaultOptions) { //pObjOptions = {container,ons
 window.FSLoader.prototype = {
 
     //PUBLIC METHODS
-    loadFSModule: function (pStrID) {
-        "use strict";
-        //TODO: look for a user-friendly way to load modules from the suite
-    },
 
     //load a single element
     load: function (pStrPath, pObjOptions, pAutoLoad) {
@@ -289,20 +285,28 @@ window.FSLoader.prototype = {
 
             pFSLoaderItem.element = elScript;
 
+
+            //console.log(elScript.readyState+"rdyStateFora");
+            /*if (elScript.readyState !== undefined) {  //IE7+
+                elScript.onreadystatechange = function () {
+                   //console.log(elScript.readyState+"rdyState");
+                   if (elScript.readyState === "loaded" || elScript.readyState === "complete") {
+                       elScript.onreadystatechange = null;
+                       //if(onCompleteCallback) onCompleteCallback();
+                       //console.log(elScript.readyState+"rdyState");
+                       this.onItemLoadComplete.apply(pFSLoaderItem);
+                   } else if (elScript.readyState === "loaded") {
+                       this.onItemLoadError.apply(pFSLoaderItem);
+                   }
+                };
+            } else {
+                elScript.addEventListener("load", this.onItemLoadComplete.bind(pFSLoaderItem), false);
+                elScript.addEventListener("error", this.onItemLoadError.bind(pFSLoaderItem), false);
+            }*/
+
             //setup event
             elScript.addEventListener("load", this.onItemLoadComplete.bind(pFSLoaderItem), false);
             elScript.addEventListener("error", this.onItemLoadError.bind(pFSLoaderItem), false);
-
-            /*if (elScript.readyState){  //IE7+
-             elScript.onreadystatechange = function () {
-             if (elScript.readyState === "loaded" || elScript.readyState === "complete") {
-             elScript.onreadystatechange = null;
-             //if(onCompleteCallback) onCompleteCallback();
-             }
-             };
-             } else {
-
-             }*/
 
             try {
                 if (pFSLoaderItem.options.container === undefined) {
@@ -329,8 +333,8 @@ window.FSLoader.prototype = {
             }
 
             //IE9 doesn't support .overrideMimeType(), so we need to check for it.
-            if (pFSLoaderItem.type === FSLoaderHelpers.TYPE_TEXT) {
-                currentRequest.overrideMimeType('text/plain; charset=x-user-defined');
+            if (pFSLoaderItem.type === FSLoaderHelpers.TYPE_TEXT &&  this.currentRequest.overrideMimeType) {
+                this.currentRequest.overrideMimeType('text/plain; charset=x-user-defined');
             }
 
             //load the XHR

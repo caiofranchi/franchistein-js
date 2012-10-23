@@ -73,27 +73,6 @@ window.FSLoaderHelpers = {
         return identifiedQueue;
     },
 
-    //method for evaluating item options from father element option (queue or fs loader)
-    evaluateOptions : function (pFSLoaderItem, pFather) {
-
-        var curOptions = pFSLoaderItem.options;
-        var fatherOptions = pFather.options;
-
-        //merge then together respecting the object hierarchy
-        console.log(curOptions);
-        console.log(fatherOptions);
-
-        //evaluating son properties
-        for (var i in curOptions) {
-            if (curOptions.hasOwnProperty(i)) {
-                if(i.indexOf)
-                    console.log(i + " : " + curOptions[i]);
-            }
-        }
-
-        return curOptions;
-    },
-
     /**
 
      @method isBinary
@@ -104,7 +83,7 @@ window.FSLoaderHelpers = {
      @returns {Boolean} returns true if binary and false if not
 
      */
-    isBinary: function(pStrType) {
+    isBinary: function (pStrType) {
         "use strict";
         switch (pStrType) {
             case FSLoaderHelpers.TYPE_IMAGE:
@@ -115,7 +94,7 @@ window.FSLoaderHelpers = {
         };
     },
 
-    identifyTagType: function(pHTMLElement) {
+    identifyTagType: function (pHTMLElement) {
         "use strict";
         switch (pHTMLElement.tagName.toUpperCase()) {
             case "IMG":
@@ -130,7 +109,19 @@ window.FSLoaderHelpers = {
         };
     },
 
+    /**
+
+     @method findRule
+     @description Helper method for search and get a specific cssRule on a CSSRuleList
+
+     @param {CSSRuleList} pCssRuleList The rule list
+     @param {String} pRule the rule name
+
+     @returns {Array} returns a array of founded values for the specific rule
+
+     */
     findRule: function (pCssRuleList, pRule) {
+        if (pCssRuleList === null) return [];
         var i,
             total= pCssRuleList.length,
             difValue = "initial",
@@ -141,7 +132,7 @@ window.FSLoaderHelpers = {
 
             if ( pCssRuleList[i].style !== undefined ) {
                 strStyle = pCssRuleList[i].style[pRule];
-                if (strStyle !== difValue && strStyle !== "" && strStyle !== undefined) {
+                if (strStyle !== difValue && strStyle !== "" && strStyle !== undefined && strStyle !== "none") {
                     //remove the URL( ) from the item
                     strStyle = strStyle.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
                     arrFound.push(strStyle);
