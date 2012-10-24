@@ -29,6 +29,7 @@ if (window.FSLoaderQueue !== undefined) {
 }
 
 FSPreloader.prototype.parseCss = function (pCssElements) {
+    "use strict";
     if (pCssElements !== undefined) {
 
         //DOM stylesheets are available

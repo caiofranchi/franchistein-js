@@ -6,21 +6,21 @@
  */
 if(!String.prototype.capitalize) {
     String.prototype.capitalize = function(){
-        return this.replace( /(^|\s)([a-z])/g , function(m,p1,p2){ return p1+p2.toUpperCase(); } );
+        return this.replace( /(^|\s)([a-z])/g , function(m,p1,p2){ return p1 + p2.toUpperCase(); } );
     };
 }
 
 if(!String.prototype.truncate) {
-    String.prototype.truncate = function(n,useWordBoundary){
-        var toLong = this.length>n,
-            s_ = toLong ? this.substr(0,n-1) : this;
+    String.prototype.truncate = function (n, useWordBoundary) {
+        var toLong = this.length > n,
+            s_ = toLong ? this.substr(0, n-1) : this;
         s_ = useWordBoundary && toLong ? s_.substr(0,s_.lastIndexOf(' ')) : s_;
         return  toLong ? s_ +'...' : s_;
     };
 }
 
 if(!String.prototype.replaceAll) {
-    String.prototype.replaceAll = function(de, para){
+    String.prototype.replaceAll = function (de, para){
         var str = this;
         var pos = str.indexOf(de);
         while (pos > -1){
@@ -32,7 +32,7 @@ if(!String.prototype.replaceAll) {
 }
 
 if(!String.prototype.removeAccents) {
-    String.prototype.removeAccents = function()
+    String.prototype.removeAccents = function ()
     {
         str = this;
         var rExps=[

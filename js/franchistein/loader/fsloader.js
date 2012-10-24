@@ -65,14 +65,14 @@ window.FSLoader = function (pObjDefaultOptions) { //pObjOptions = {container,ons
     }
 
     // set the default container
-    if (this.options !== undefined && this.options["container"] !== undefined) {
+    if (this.options !== undefined && this.options.container !== undefined) {
         this.containerElement = this.options.container;
     } else {
         this.containerElement = document.createElement("div");
         this.containerElement.id = "divContainerFSLoader";
         this.containerElement.style.display = "none";
         document.body.appendChild(this.containerElement);
-    };
+    }
 };
 
 window.FSLoader.prototype = {
@@ -91,18 +91,20 @@ window.FSLoader.prototype = {
 
         if (pAutoLoad === undefined || pAutoLoad === true) {
            this.executeLoad(currentItem);
-        };
+        }
 
         return currentItem;
     },
 
     //get element by id
     get: function (pValue) {
+        "use strict";
         return this.getElementByAttribute("id", pValue);
     },
 
     //get element by attribute
     getElementByAttribute: function (pAttribute, pValue) {
+        "use strict";
         return this.items[this.items.indexByObjectValue(pAttribute, pValue)];
     },
 
@@ -149,23 +151,23 @@ window.FSLoader.prototype = {
     generateTagByType: function (pStrType, pStrPath) {
         "use strict";
         switch (pStrType) {
-            case FSLoaderHelpers.TYPE_CSS:
-                return this.createCssTag(pStrPath);
-            case FSLoaderHelpers.TYPE_JAVASCRIPT:
-                return this.createJavascriptTag(pStrPath);
-            case FSLoaderHelpers.TYPE_IMAGE:
-                return this.createImageTag(pStrPath);
-            case FSLoaderHelpers.TYPE_SVG:
-                return this.createSVGTag(pStrPath);
-            case FSLoaderHelpers.TYPE_SOUND:
-                return this.createSoundTag(pStrPath);
-        };
+        case FSLoaderHelpers.TYPE_CSS:
+            return this.createCssTag(pStrPath);
+        case FSLoaderHelpers.TYPE_JAVASCRIPT:
+            return this.createJavascriptTag(pStrPath);
+        case FSLoaderHelpers.TYPE_IMAGE:
+            return this.createImageTag(pStrPath);
+        case FSLoaderHelpers.TYPE_SVG:
+            return this.createSVGTag(pStrPath);
+        case FSLoaderHelpers.TYPE_SOUND:
+            return this.createSoundTag(pStrPath);
+        }
     },
 
     //returns the file type for loading, based on file extension and recognized file types for loading
     getFileType: function (pStrPath) {
         "use strict";
-        var strExtension = StringUtils.getFileExtension(pStrPath);
+        var strExtension = FSLoaderHelpers.getFileExtension(pStrPath);
 
         switch (strExtension) {
         case "ogg":
@@ -256,7 +258,7 @@ window.FSLoader.prototype = {
         var onStartCallback;
         if (pFSLoaderItem.options["onstart"] !== undefined) {
             onStartCallback = pFSLoaderItem.options.onstart;
-        };
+        }
 
         //trigger event callback
         if (onStartCallback !== undefined) {
@@ -265,7 +267,7 @@ window.FSLoader.prototype = {
             } else {
                 onStartCallback.apply(pFSLoaderItem);
             }
-        };
+        }
 
         //loading
         pFSLoaderItem.state = pFSLoaderItem.STATE_LOADING;
@@ -352,8 +354,6 @@ window.FSLoader.prototype = {
                 }
             }
 
-            /*this.currentRequest.onload = this.onItemLoadComplete.bind(pFSLoaderItem);
-            this.currentRequest.onerror = this.onItemLoadError.bind(pFSLoaderItem);*/
             this.currentRequest.addEventListener("progress", this.onItemLoadProgress.bind(pFSLoaderItem), false);
             this.currentRequest.addEventListener("load", this.onItemLoadComplete.bind(pFSLoaderItem), false);
             this.currentRequest.addEventListener("error", this.onItemLoadError.bind(pFSLoaderItem), false);
@@ -447,7 +447,7 @@ window.FSLoader.prototype = {
         //if the item belongs to a queue, exec the callback
         if (this.queue !== undefined) {
             this.queue.onQueueItemProgress(this);
-        };
+        }
 
         if (this.options.onprogress !== undefined) {
             if (this.options.onprogressparams !== undefined) {
@@ -483,7 +483,7 @@ window.FSLoader.prototype = {
             //if the item belongs to a queue, exec the callback
             if (this.queue !== undefined) {
                 this.queue.onQueueItemError(this);
-            };
+            }
 
             if (this.options.onerror !== undefined) {
                 if (this.options.onerrorparams !== undefined) {
@@ -491,7 +491,7 @@ window.FSLoader.prototype = {
                 } else {
                     this.options.onerror.apply(this);
                 }
-            };
+            }
         }
     }
 };

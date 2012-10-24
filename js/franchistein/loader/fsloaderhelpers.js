@@ -59,22 +59,6 @@ window.FSLoaderHelpers = {
 
     /**
 
-     @method parseContent
-     @description Method for parsing and finding loadable assets on page
-
-     @param {Object} pObjOption The error handler function
-
-     @returns {FSLoaderQueue} returns a configured queue with the founded items
-
-     */
-    parseContent : function (pObjOption) { //{images:true|false,css:true|false,scope:document.body|HTMLElement}
-        "use strict";
-        var identifiedQueue = new FSLoaderQueue();
-        return identifiedQueue;
-    },
-
-    /**
-
      @method isBinary
      @description Verify by the file type if its binary or not
 
@@ -92,6 +76,11 @@ window.FSLoaderHelpers = {
             default:
                 return false;
         };
+    },
+
+    getFileExtension: function (pStrPath) {
+        "use strict";
+        return pStrPath.split('.').pop();
     },
 
     identifyTagType: function (pHTMLElement) {
